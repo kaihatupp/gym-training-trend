@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gym Training Trend</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2f5d7d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GymTrend">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Gym Training Trend</h1>
+</header>
+
+<nav id="main-tabs" class="tab-bar">
+  <button type="button" class="tab-btn active" data-view="home">今日の記録</button>
+  <button type="button" class="tab-btn" data-view="list">記録一覧</button>
+  <button type="button" class="tab-btn" data-view="profile">プロフィール</button>
+</nav>
+
+<main>
+  <section id="view-home" class="view active">
+    <form id="record-form">
+      <div class="field">
+        <label for="date">日付</label>
+        <input type="date" id="date" name="date" required>
+      </div>
+
+      <div class="field">
+        <label for="bodyWeight">体重 (kg)</label>
+        <input type="text" id="bodyWeight" name="bodyWeight" inputmode="numeric" placeholder="655と入力→65.5">
+      </div>
+
+      <fieldset class="group">
+        <legend>有酸素運動</legend>
+
+        <div class="field-row cardio-type-row">
+          <label class="radio-label">
+            <input type="radio" name="cardioType" value="walk"> ウォーキング
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="cardioType" value="run"> ランニング
+          </label>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="distanceKm">距離 (km)</label>
+            <input type="number" id="distanceKm" name="distanceKm" inputmode="decimal" step="0.1" min="0" placeholder="例: 7">
+          </div>
+          <div class="field">
+            <label for="durationMin">時間 (分)</label>
+            <input type="number" id="durationMin" name="durationMin" inputmode="numeric" step="1" min="0" placeholder="例: 60">
+          </div>
+        </div>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="incline" name="incline"> 傾斜あり
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="isRunWalkCombo" name="isRunWalkCombo"> ラン・ウォーク混合
+        </label>
+      </fieldset>
+
+      <fieldset class="group" id="strength-group">
+        <legend>筋トレ</legend>
+        <p class="hint">使ったマシンにチェックを入れてください(重量はプロフィール値を自動入力、上書き可)</p>
+        <div id="strength-machines"></div>
+        <p id="strength-empty" class="empty" hidden>登録済みのマシンがありません。プロフィール画面で登録してください。</p>
+      </fieldset>
+
+      <fieldset class="group" id="stretch-group">
+        <legend>ストレッチ</legend>
+        <div class="field">
+          <label for="stretchDuration">時間 (分)</label>
+          <input type="number" id="stretchDuration" name="stretchDuration" inputmode="numeric" step="1" min="0" placeholder="例: 40">
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for="memo">メモ</label>
+        <textarea id="memo" name="memo" rows="2" placeholder="任意"></textarea>
+      </div>
+
+      <button type="submit" id="save-btn">保存する</button>
+      <p id="save-message" class="save-message" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section id="view-list" class="view">
+    <h2>記録一覧</h2>
+    <p class="hint">タップすると、その日の記録を編集できます</p>
+    <ul id="records-list"></ul>
+    <button type="button" id="records-toggle" hidden></button>
+  </section>
+
+  <section id="view-profile" class="view">
+    <h2>筋トレマシン登録</h2>
+    <p class="hint">ウエイトはマシンごとに保持されます。変更があった時だけ編集してください。</p>
+    <ul id="machines-list"></ul>
+
+    <h3>マシンを追加</h3>
+    <form id="machine-form">
+      <div class="field">
+        <label for="machineName">マシン名</label>
+        <input type="text" id="machineName" name="machineName" required placeholder="例: ラットプルダウン">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="machineWeight">重量 (kg)</label>
+          <input type="number" id="machineWeight" name="machineWeight" inputmode="decimal" step="0.5" min="0" placeholder="例: 50">
+        </div>
+        <div class="field">
+          <label for="machineReps">回数</label>
+          <input type="number" id="machineReps" name="machineReps" inputmode="numeric" step="1" min="0" value="15">
+        </div>
+        <div class="field">
+          <label for="machineSets">セット数</label>
+          <input type="number" id="machineSets" name="machineSets" inputmode="numeric" step="1" min="0" value="3">
+        </div>
+      </div>
+      <button type="submit" id="add-machine-btn" class="secondary-btn">追加する</button>
+    </form>
+  </section>
+</main>
+
+<script src="templates.js"></script>
+<script src="app.js"></script>
+<script src="pwa.js"></script>
+</body>
+</html>
