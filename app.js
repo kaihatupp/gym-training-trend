@@ -42,6 +42,8 @@ function ensureProfileSeeded() {
         defaultReps: 15,
         defaultSets: 3,
         active: true,
+        targetWeightKg: null,
+        targetReps: null,
       })),
     };
     saveProfile(profile);
@@ -168,6 +170,7 @@ const tabBar = document.getElementById("main-tabs");
 const views = {
   home: document.getElementById("view-home"),
   list: document.getElementById("view-list"),
+  graph: document.getElementById("view-graph"),
   profile: document.getElementById("view-profile"),
 };
 
@@ -188,6 +191,8 @@ function showView(name) {
     populateFormForDate(dateInput.value);
   } else if (name === "list") {
     renderLogsList();
+  } else if (name === "graph") {
+    if (typeof renderGraphView === "function") renderGraphView();
   } else if (name === "profile") {
     renderMachinesList();
   }
@@ -231,6 +236,16 @@ function renderMachinesList() {
           <input type="number" class="m-sets" step="1" min="0" value="${m.defaultSets ?? ""}">
         </div>
       </div>
+      <div class="field-row">
+        <div class="field">
+          <label>目標重量(kg)</label>
+          <input type="number" class="m-target-weight" step="0.5" min="0" value="${m.targetWeightKg ?? ""}" placeholder="任意">
+        </div>
+        <div class="field">
+          <label>目標回数</label>
+          <input type="number" class="m-target-reps" step="1" min="0" value="${m.targetReps ?? ""}" placeholder="任意">
+        </div>
+      </div>
       <div class="machine-row-footer">
         <label class="checkbox-label">
           <input type="checkbox" class="m-active" ${m.active ? "checked" : ""}> 使用中
@@ -261,6 +276,10 @@ machinesList.addEventListener("change", (e) => {
     machine.defaultReps = getNumberOrNull(e.target);
   } else if (e.target.classList.contains("m-sets")) {
     machine.defaultSets = getNumberOrNull(e.target);
+  } else if (e.target.classList.contains("m-target-weight")) {
+    machine.targetWeightKg = getNumberOrNull(e.target);
+  } else if (e.target.classList.contains("m-target-reps")) {
+    machine.targetReps = getNumberOrNull(e.target);
   } else if (e.target.classList.contains("m-active")) {
     machine.active = e.target.checked;
   } else {
@@ -289,6 +308,8 @@ machineForm.addEventListener("submit", (e) => {
   const weightInput = document.getElementById("machineWeight");
   const repsInput = document.getElementById("machineReps");
   const setsInput = document.getElementById("machineSets");
+  const targetWeightInput = document.getElementById("machineTargetWeight");
+  const targetRepsInput = document.getElementById("machineTargetReps");
 
   const name = nameInput.value.trim();
   if (!name) {
@@ -304,6 +325,8 @@ machineForm.addEventListener("submit", (e) => {
     defaultReps: getNumberOrNull(repsInput) ?? 15,
     defaultSets: getNumberOrNull(setsInput) ?? 3,
     active: true,
+    targetWeightKg: getNumberOrNull(targetWeightInput),
+    targetReps: getNumberOrNull(targetRepsInput),
   });
   saveProfile(profile);
 

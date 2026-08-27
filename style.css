@@ -305,6 +305,48 @@ textarea {
   background: #eaf1f6;
 }
 
+/* グラフ画面 */
+
+.selector-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.selector-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #444;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.selector-btn.active {
+  color: #fff;
+  background: #2f5d7d;
+  border-color: #2f5d7d;
+}
+
+.chart-wrap {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: 320px;
+}
+
+#chart-empty {
+  text-align: center;
+  color: #888;
+  margin-top: 24px;
+}
+
 /* プロフィール画面 */
 
 #view-profile h2,
