@@ -84,6 +84,42 @@
         </div>
       </fieldset>
 
+      <fieldset class="group" id="calorie-group">
+        <legend>推定カロリー(参考)</legend>
+        <p class="hint">一般的な計算式による概算です。医学的な指導や個別の栄養指導ではありません。</p>
+
+        <div class="calorie-line">
+          <span class="calorie-label">消費カロリー概算(本日の内容)</span>
+          <span id="calorie-burned" class="calorie-value">-</span>
+        </div>
+
+        <div id="calorie-intake-block">
+          <div class="calorie-line">
+            <span class="calorie-label">摂取カロリー目安(維持)</span>
+            <span id="calorie-maintenance" class="calorie-value">-</span>
+          </div>
+          <div class="calorie-line">
+            <span class="calorie-label">減量目安(-500kcal/日)</span>
+            <span id="calorie-loss" class="calorie-value">-</span>
+          </div>
+          <div class="calorie-line">
+            <span class="calorie-label">増量目安(+300kcal/日)</span>
+            <span id="calorie-gain" class="calorie-value">-</span>
+          </div>
+        </div>
+        <p id="calorie-profile-hint" class="hint" hidden>プロフィール画面で身長・体重・年齢を入力すると摂取カロリー目安が表示されます。</p>
+
+        <div id="meal-example-block">
+          <p class="reference-hint" id="meal-example-note">維持カロリーを基準にした献立例(参考)</p>
+          <ul class="meal-example-list">
+            <li><span class="meal-label">朝食</span><span id="meal-breakfast"></span></li>
+            <li><span class="meal-label">昼食</span><span id="meal-lunch"></span></li>
+            <li><span class="meal-label">夕食</span><span id="meal-dinner"></span></li>
+            <li><span class="meal-label">間食</span><span id="meal-snack"></span></li>
+          </ul>
+        </div>
+      </fieldset>
+
       <div class="field">
         <label for="memo">メモ</label>
         <textarea id="memo" name="memo" rows="2" placeholder="任意"></textarea>
@@ -126,6 +162,20 @@
       <div class="field">
         <label for="profileAge">年齢</label>
         <input type="number" id="profileAge" step="1" min="0" placeholder="任意">
+      </div>
+    </div>
+    <div class="field">
+      <label>性別(消費・摂取カロリーの計算式に使用)</label>
+      <div class="field-row cardio-type-row">
+        <label class="radio-label">
+          <input type="radio" name="profileGender" value="male"> 男性
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="profileGender" value="female"> 女性
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="profileGender" value="unspecified"> 回答しない
+        </label>
       </div>
     </div>
 
@@ -174,6 +224,7 @@
 </main>
 
 <script src="templates.js"></script>
+<script src="calorie.js"></script>
 <script src="app.js"></script>
 <script src="backup.js"></script>
 <script src="pwa.js"></script>
