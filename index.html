@@ -100,6 +100,16 @@
     <p class="hint">タップすると、その日の記録を編集できます</p>
     <ul id="records-list"></ul>
     <button type="button" id="records-toggle" hidden></button>
+
+    <section id="backup-section">
+      <h2>バックアップ</h2>
+      <p class="hint">記録データをファイルとして保存・復元できます</p>
+      <div class="backup-buttons">
+        <button type="button" id="export-btn" class="secondary-btn">エクスポート(保存)</button>
+        <button type="button" id="import-btn" class="secondary-btn">インポート(復元)</button>
+      </div>
+      <input type="file" id="import-file" accept="application/json,.json" hidden>
+    </section>
   </section>
 
   <section id="view-graph" class="view">
@@ -114,8 +124,30 @@
   </section>
 
   <section id="view-profile" class="view">
+    <h2>基本情報</h2>
+    <p class="hint">目標値の参考表示に使います(任意入力)。</p>
+    <div class="field-row">
+      <div class="field">
+        <label for="profileHeight">身長 (cm)</label>
+        <input type="number" id="profileHeight" step="0.1" min="0" placeholder="任意">
+      </div>
+      <div class="field">
+        <label for="profileWeight">体重 (kg)</label>
+        <input type="number" id="profileWeight" step="0.1" min="0" placeholder="任意">
+      </div>
+      <div class="field">
+        <label for="profileAge">年齢</label>
+        <input type="number" id="profileAge" step="1" min="0" placeholder="任意">
+      </div>
+    </div>
+
+    <h2>有酸素運動</h2>
+    <p class="hint">曜日テンプレートの基本の距離・時間・傾斜を設定できます。</p>
+    <ul id="cardio-list"></ul>
+
     <h2>筋トレマシン登録</h2>
     <p class="hint">ウエイトはマシンごとに保持されます。変更があった時だけ編集してください。</p>
+    <p class="hint">目標重量・目標回数の欄には、体重をもとにした一般的な目安を表示します(機種や個人差により大きく異なるため参考程度にご利用ください)。</p>
     <ul id="machines-list"></ul>
 
     <h3>マシンを追加</h3>
@@ -157,6 +189,7 @@
 <script src="templates.js"></script>
 <script src="app.js"></script>
 <script src="charts.js"></script>
+<script src="backup.js"></script>
 <script src="pwa.js"></script>
 </body>
 </html>

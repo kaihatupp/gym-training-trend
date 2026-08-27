@@ -8,6 +8,11 @@ const DEFAULT_MACHINES = [
   { name: "ペクトラルフライ", currentWeightKg: 54 },
 ];
 
+const DEFAULT_CARDIO = [
+  { type: "walk", label: "ウォーキング", distanceKm: 5, durationMin: 60, incline: true, isRunWalkCombo: false },
+  { type: "run", label: "ランニング", distanceKm: 7, durationMin: 60, incline: false, isRunWalkCombo: true },
+];
+
 function makeId() {
   return typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
@@ -33,6 +38,8 @@ function saveProfile(profile) {
 
 function ensureProfileSeeded() {
   let profile = loadProfile();
+  let changed = false;
+
   if (!profile) {
     profile = {
       machines: DEFAULT_MACHINES.map((m) => ({
@@ -45,15 +52,91 @@ function ensureProfileSeeded() {
         targetWeightKg: null,
         targetReps: null,
       })),
+      cardio: DEFAULT_CARDIO.map((c) => ({ ...c })),
+      heightCm: null,
+      weightKg: null,
+      age: null,
     };
-    saveProfile(profile);
+    changed = true;
+  } else {
+    // 既存プロフィール(フェーズ1/2)に無い項目を後方互換で補う
+    if (!Array.isArray(profile.cardio)) {
+      profile.cardio = DEFAULT_CARDIO.map((c) => ({ ...c }));
+      changed = true;
+    }
+    if (profile.heightCm === undefined) {
+      profile.heightCm = null;
+      changed = true;
+    }
+    if (profile.weightKg === undefined) {
+      profile.weightKg = null;
+      changed = true;
+    }
+    if (profile.age === undefined) {
+      profile.age = null;
+      changed = true;
+    }
+    for (const m of profile.machines) {
+      if (m.targetWeightKg === undefined) {
+        m.targetWeightKg = null;
+        changed = true;
+      }
+      if (m.targetReps === undefined) {
+        m.targetReps = null;
+        changed = true;
+      }
+    }
   }
+
+  if (changed) saveProfile(profile);
   return profile;
 }
 
 function getActiveMachines() {
   return ensureProfileSeeded().machines.filter((m) => m.active);
 }
+
+function getCardioProfile(type) {
+  const profile = ensureProfileSeeded();
+  return profile.cardio.find((c) => c.type === type) || DEFAULT_CARDIO.find((c) => c.type === type);
+}
+
+function getReferenceBodyWeightKg() {
+  const profile = ensureProfileSeeded();
+  if (profile.weightKg !== null && profile.weightKg !== undefined) return profile.weightKg;
+  const logs = loadLogs();
+  for (const log of logs) {
+    if (log.bodyWeightKg !== null && log.bodyWeightKg !== undefined) return log.bodyWeightKg;
+  }
+  return null;
+}
+
+// 一般的な体重比の目安(あくまで参考値。機種や個人差で大きく変わる)
+const TARGET_WEIGHT_MULTIPLIERS = [
+  { keyword: "チェストプレス", multiplier: 0.6 },
+  { keyword: "レッグプレス", multiplier: 2.0 },
+  { keyword: "ラットプルダウン", multiplier: 0.65 },
+  { keyword: "ペクトラルフライ", multiplier: 0.4 },
+  { keyword: "ショルダープレス", multiplier: 0.35 },
+  { keyword: "レッグカール", multiplier: 0.4 },
+  { keyword: "レッグエクステンション", multiplier: 0.5 },
+  { keyword: "ローイング", multiplier: 0.55 },
+  { keyword: "ロー", multiplier: 0.55 },
+];
+
+function getSuggestedTargetWeightText(machineName) {
+  const bodyWeight = getReferenceBodyWeightKg();
+  if (!bodyWeight) return "参考値: プロフィールに体重を入力すると表示されます";
+
+  const match = TARGET_WEIGHT_MULTIPLIERS.find((m) => machineName.includes(m.keyword));
+  if (!match) return "参考値: このマシン種目には一般的な目安がありません";
+
+  const raw = bodyWeight * match.multiplier;
+  const rounded = Math.round(raw / 2.5) * 2.5;
+  return `参考目安: 約${rounded}kg(体重${bodyWeight}kgの場合)`;
+}
+
+const TARGET_REPS_HINT = "回数の目安: 筋力向上 1〜6回 / 筋肥大 8〜12回 / 筋持久力 15回以上";
 
 // ---------- トレーニング記録の読み書き ----------
 
@@ -194,6 +277,8 @@ function showView(name) {
   } else if (name === "graph") {
     if (typeof renderGraphView === "function") renderGraphView();
   } else if (name === "profile") {
+    renderBasicInfo();
+    renderCardioList();
     renderMachinesList();
   }
 }
@@ -240,10 +325,12 @@ function renderMachinesList() {
         <div class="field">
           <label>目標重量(kg)</label>
           <input type="number" class="m-target-weight" step="0.5" min="0" value="${m.targetWeightKg ?? ""}" placeholder="任意">
+          <p class="reference-hint">${escapeAttr(getSuggestedTargetWeightText(m.name))}</p>
         </div>
         <div class="field">
           <label>目標回数</label>
           <input type="number" class="m-target-reps" step="1" min="0" value="${m.targetReps ?? ""}" placeholder="任意">
+          <p class="reference-hint">${escapeAttr(TARGET_REPS_HINT)}</p>
         </div>
       </div>
       <div class="machine-row-footer">
@@ -286,6 +373,7 @@ machinesList.addEventListener("change", (e) => {
     return;
   }
   saveProfile(profile);
+  renderMachinesList();
 });
 
 machinesList.addEventListener("click", (e) => {
@@ -334,6 +422,92 @@ machineForm.addEventListener("submit", (e) => {
   repsInput.value = 15;
   setsInput.value = 3;
   renderMachinesList();
+});
+
+// ---------- 基本情報(身長・体重・年齢) ----------
+
+const profileHeightInput = document.getElementById("profileHeight");
+const profileWeightInput = document.getElementById("profileWeight");
+const profileAgeInput = document.getElementById("profileAge");
+
+function renderBasicInfo() {
+  const profile = ensureProfileSeeded();
+  profileHeightInput.value = profile.heightCm ?? "";
+  profileWeightInput.value = profile.weightKg ?? "";
+  profileAgeInput.value = profile.age ?? "";
+}
+
+function handleBasicInfoChange(e) {
+  const profile = ensureProfileSeeded();
+  profile.heightCm = getNumberOrNull(profileHeightInput);
+  profile.weightKg = getNumberOrNull(profileWeightInput);
+  profile.age = getNumberOrNull(profileAgeInput);
+  saveProfile(profile);
+  if (e.target === profileWeightInput) {
+    renderMachinesList();
+  }
+}
+
+profileHeightInput.addEventListener("change", handleBasicInfoChange);
+profileWeightInput.addEventListener("change", handleBasicInfoChange);
+profileAgeInput.addEventListener("change", handleBasicInfoChange);
+
+// ---------- 有酸素運動プロフィール ----------
+
+const cardioList = document.getElementById("cardio-list");
+
+function renderCardioList() {
+  const profile = ensureProfileSeeded();
+  cardioList.innerHTML = "";
+
+  for (const c of profile.cardio) {
+    const li = document.createElement("li");
+    li.dataset.type = c.type;
+    li.innerHTML = `
+      <div class="field">
+        <label>${escapeAttr(c.label)}</label>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>距離(km)</label>
+          <input type="number" class="c-distance" step="0.1" min="0" value="${c.distanceKm ?? ""}">
+        </div>
+        <div class="field">
+          <label>時間(分)</label>
+          <input type="number" class="c-duration" step="1" min="0" value="${c.durationMin ?? ""}">
+        </div>
+      </div>
+      <label class="checkbox-label">
+        <input type="checkbox" class="c-incline" ${c.incline ? "checked" : ""}> 傾斜あり(基本)
+      </label>
+      ${c.type === "run" ? `
+      <label class="checkbox-label">
+        <input type="checkbox" class="c-combo" ${c.isRunWalkCombo ? "checked" : ""}> ラン・ウォーク混合(基本)
+      </label>` : ""}
+    `;
+    cardioList.appendChild(li);
+  }
+}
+
+cardioList.addEventListener("change", (e) => {
+  const li = e.target.closest("li[data-type]");
+  if (!li) return;
+  const profile = ensureProfileSeeded();
+  const cardio = profile.cardio.find((c) => c.type === li.dataset.type);
+  if (!cardio) return;
+
+  if (e.target.classList.contains("c-distance")) {
+    cardio.distanceKm = getNumberOrNull(e.target);
+  } else if (e.target.classList.contains("c-duration")) {
+    cardio.durationMin = getNumberOrNull(e.target);
+  } else if (e.target.classList.contains("c-incline")) {
+    cardio.incline = e.target.checked;
+  } else if (e.target.classList.contains("c-combo")) {
+    cardio.isRunWalkCombo = e.target.checked;
+  } else {
+    return;
+  }
+  saveProfile(profile);
 });
 
 // ---------- 今日の記録画面 ----------
@@ -427,12 +601,13 @@ function populateFormForDate(date) {
     memoInput.value = existing.memo || "";
     renderStrengthMachines(existing.strength ? existing.strength.entries : []);
   } else {
+    const cardioDefaults = getCardioProfile(templ.cardioType);
     setTextFieldValue(bodyWeightInput, "");
-    setCardioType(templ.cardio.type);
-    distanceKmInput.value = templ.cardio.distanceKm;
-    durationMinInput.value = templ.cardio.durationMin;
-    inclineInput.checked = templ.cardio.incline;
-    isRunWalkComboInput.checked = templ.cardio.isRunWalkCombo;
+    setCardioType(cardioDefaults.type);
+    distanceKmInput.value = cardioDefaults.distanceKm ?? "";
+    durationMinInput.value = cardioDefaults.durationMin ?? "";
+    inclineInput.checked = Boolean(cardioDefaults.incline);
+    isRunWalkComboInput.checked = Boolean(cardioDefaults.isRunWalkCombo);
     stretchDurationInput.value = templ.showStretch ? templ.stretchDurationMin : "";
     memoInput.value = "";
     renderStrengthMachines(null);

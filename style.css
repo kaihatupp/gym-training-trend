@@ -238,14 +238,16 @@ textarea {
 /* 記録一覧 */
 
 #records-list,
-#machines-list {
+#machines-list,
+#cardio-list {
   list-style: none;
   margin: 0 0 16px;
   padding: 0;
 }
 
 #records-list li,
-#machines-list li {
+#machines-list li,
+#cardio-list li {
   background: #fff;
   border-radius: 8px;
   padding: 12px;
@@ -305,6 +307,21 @@ textarea {
   background: #eaf1f6;
 }
 
+/* バックアップ */
+
+#backup-section {
+  margin-top: 24px;
+}
+
+.backup-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.backup-buttons .secondary-btn {
+  flex: 1;
+}
+
 /* グラフ画面 */
 
 .selector-row {
@@ -353,11 +370,11 @@ textarea {
 #view-profile h3 {
   font-size: 1rem;
   color: #444;
-  margin: 0 0 4px;
+  margin: 20px 0 4px;
 }
 
-#view-profile h3 {
-  margin-top: 20px;
+#view-profile h2:first-child {
+  margin-top: 0;
 }
 
 .machine-row-footer {
@@ -371,11 +388,20 @@ textarea {
   margin: 0;
 }
 
-#machines-list .field {
+#machines-list .field,
+#cardio-list .field {
   margin-bottom: 10px;
 }
 
-#machines-list .field label {
+#machines-list .field label,
+#cardio-list .field label {
   font-size: 0.75rem;
   margin-bottom: 4px;
+}
+
+.reference-hint {
+  font-size: 0.72rem;
+  color: #888;
+  margin: 4px 0 0;
+  line-height: 1.4;
 }
