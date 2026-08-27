@@ -1,15 +1,13 @@
-const CACHE_NAME = "gym-training-trend-cache-v3";
+const CACHE_NAME = "gym-training-trend-cache-v4";
 const PRECACHE_FILES = [
   "./",
   "index.html",
   "style.css",
   "app.js",
   "templates.js",
-  "charts.js",
   "backup.js",
   "pwa.js",
   "manifest.json",
-  "lib/chart.umd.min.js",
   "icons/icon-192.png",
   "icons/icon-512.png",
   "icons/icon-512-maskable.png",
