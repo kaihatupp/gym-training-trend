@@ -133,9 +133,6 @@ importFile.addEventListener("change", () => {
 
     renderLogsList();
     populateFormForDate(dateInput.value);
-    if (typeof renderGraphView === "function") {
-      renderGraphView();
-    }
 
     alert(`${incomingLogs.length}件の記録を復元しました。`);
     importFile.value = "";

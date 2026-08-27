@@ -22,7 +22,6 @@
 <nav id="main-tabs" class="tab-bar">
   <button type="button" class="tab-btn active" data-view="home">今日の記録</button>
   <button type="button" class="tab-btn" data-view="list">記録一覧</button>
-  <button type="button" class="tab-btn" data-view="graph">グラフ</button>
   <button type="button" class="tab-btn" data-view="profile">プロフィール</button>
 </nav>
 
@@ -112,17 +111,6 @@
     </section>
   </section>
 
-  <section id="view-graph" class="view">
-    <h2>重量推移グラフ</h2>
-    <div class="selector-row" id="machine-tabs"></div>
-    <p id="machine-tabs-empty" class="hint" hidden>登録済みのマシンがありません。プロフィール画面で登録してください。</p>
-
-    <div class="chart-wrap">
-      <canvas id="chart-canvas"></canvas>
-    </div>
-    <p id="chart-empty" class="empty" hidden>このマシンの記録がまだありません</p>
-  </section>
-
   <section id="view-profile" class="view">
     <h2>基本情報</h2>
     <p class="hint">目標値の参考表示に使います(任意入力)。</p>
@@ -185,10 +173,8 @@
   </section>
 </main>
 
-<script src="lib/chart.umd.min.js"></script>
 <script src="templates.js"></script>
 <script src="app.js"></script>
-<script src="charts.js"></script>
 <script src="backup.js"></script>
 <script src="pwa.js"></script>
 </body>

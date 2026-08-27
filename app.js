@@ -253,7 +253,6 @@ const tabBar = document.getElementById("main-tabs");
 const views = {
   home: document.getElementById("view-home"),
   list: document.getElementById("view-list"),
-  graph: document.getElementById("view-graph"),
   profile: document.getElementById("view-profile"),
 };
 
@@ -274,8 +273,6 @@ function showView(name) {
     populateFormForDate(dateInput.value);
   } else if (name === "list") {
     renderLogsList();
-  } else if (name === "graph") {
-    if (typeof renderGraphView === "function") renderGraphView();
   } else if (name === "profile") {
     renderBasicInfo();
     renderCardioList();
