@@ -22,6 +22,7 @@
 <nav id="main-tabs" class="tab-bar">
   <button type="button" class="tab-btn active" data-view="home">今日の記録</button>
   <button type="button" class="tab-btn" data-view="list">記録一覧</button>
+  <button type="button" class="tab-btn" data-view="summary">サマリー</button>
   <button type="button" class="tab-btn" data-view="profile">プロフィール</button>
 </nav>
 
@@ -147,6 +148,45 @@
     </section>
   </section>
 
+  <section id="view-summary" class="view">
+    <h2>連続記録日数</h2>
+    <div class="streak-box">
+      <div class="streak-item">
+        <span class="streak-label">現在の連続記録</span>
+        <span id="streak-current" class="streak-value">0日</span>
+      </div>
+      <div class="streak-item">
+        <span class="streak-label">自己ベスト</span>
+        <span id="streak-best" class="streak-value">0日</span>
+      </div>
+    </div>
+
+    <h2>期間サマリー</h2>
+    <div class="selector-row" id="summary-period-tabs">
+      <button type="button" class="selector-btn active" data-period="week">週ごと</button>
+      <button type="button" class="selector-btn" data-period="month">月ごと</button>
+    </div>
+    <div class="period-nav">
+      <button type="button" id="summary-prev" class="nav-btn">◀ 前へ</button>
+      <span id="summary-range-label" class="range-label"></span>
+      <button type="button" id="summary-next" class="nav-btn">次へ ▶</button>
+    </div>
+    <ul class="summary-list" id="summary-stats"></ul>
+    <p id="summary-empty" class="empty" hidden>この期間の記録がありません</p>
+
+    <h2>成長の横断比較</h2>
+    <p class="hint">各マシンの初回記録と最新記録を比較します。</p>
+    <div class="table-scroll">
+      <table id="progress-table" class="progress-table" hidden>
+        <thead>
+          <tr><th>マシン</th><th>初回</th><th>最新</th><th>差分</th></tr>
+        </thead>
+        <tbody id="progress-table-body"></tbody>
+      </table>
+    </div>
+    <p id="progress-empty" class="empty" hidden>比較できる記録がまだありません</p>
+  </section>
+
   <section id="view-profile" class="view">
     <h2>基本情報</h2>
     <p class="hint">目標値の参考表示に使います(任意入力)。</p>
@@ -226,6 +266,7 @@
 <script src="templates.js"></script>
 <script src="calorie.js"></script>
 <script src="app.js"></script>
+<script src="summary.js"></script>
 <script src="backup.js"></script>
 <script src="pwa.js"></script>
 </body>
