@@ -1,0 +1,339 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  background: #f5f6f8;
+  color: #222;
+}
+
+header {
+  background: #2f5d7d;
+  color: #fff;
+  padding: 16px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.tab-bar {
+  display: flex;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tab-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 4px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #888;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  color: #2f5d7d;
+  border-bottom-color: #2f5d7d;
+}
+
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+
+form {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field-row {
+  display: flex;
+  gap: 12px;
+}
+
+.field-row .field {
+  flex: 1;
+  min-width: 0;
+}
+
+label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  font-family: inherit;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #2f5d7d;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.group {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0 0 16px;
+}
+
+.group legend {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #444;
+  padding: 0 6px;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0 0 12px;
+}
+
+.cardio-type-row {
+  margin-bottom: 12px;
+}
+
+.radio-label,
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  font-weight: normal;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.radio-label input,
+.checkbox-label input {
+  width: auto;
+  padding: 0;
+}
+
+#save-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #fff;
+  background: #2f5d7d;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#save-btn:active {
+  background: #234a64;
+}
+
+.save-message {
+  text-align: center;
+  color: #2f5d7d;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin: 12px 0 0;
+  min-height: 1.2em;
+}
+
+.secondary-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #2f5d7d;
+  background: #fff;
+  border: 1px solid #2f5d7d;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.secondary-btn:active {
+  background: #eaf1f6;
+}
+
+.delete-btn {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #c0392b;
+  background: #fff;
+  border: 1px solid #c0392b;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.delete-btn:active {
+  background: #fbeae8;
+}
+
+/* 筋トレマシン選択(今日の記録) */
+
+.strength-row {
+  border-top: 1px solid #eee;
+  padding: 12px 0;
+}
+
+.strength-row:first-child {
+  border-top: none;
+}
+
+.strength-check {
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.strength-inputs .field {
+  margin-bottom: 0;
+}
+
+#strength-empty {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+/* 記録一覧 */
+
+#records-list,
+#machines-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+}
+
+#records-list li,
+#machines-list li {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+#records-list li[data-date] {
+  cursor: pointer;
+}
+
+#records-list li[data-date]:active {
+  background: #eaf1f6;
+}
+
+.record-row-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.record-date {
+  font-weight: bold;
+  color: #2f5d7d;
+}
+
+.record-summary {
+  color: #555;
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+#records-list .empty,
+#machines-list .empty {
+  text-align: center;
+  color: #888;
+  box-shadow: none;
+}
+
+#records-toggle {
+  width: 100%;
+  padding: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #2f5d7d;
+  background: #fff;
+  border: 1px solid #2f5d7d;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+#records-toggle:active {
+  background: #eaf1f6;
+}
+
+/* プロフィール画面 */
+
+#view-profile h2,
+#view-profile h3 {
+  font-size: 1rem;
+  color: #444;
+  margin: 0 0 4px;
+}
+
+#view-profile h3 {
+  margin-top: 20px;
+}
+
+.machine-row-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.machine-row-footer .checkbox-label {
+  margin: 0;
+}
+
+#machines-list .field {
+  margin-bottom: 10px;
+}
+
+#machines-list .field label {
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+}
