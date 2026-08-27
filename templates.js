@@ -1,15 +1,18 @@
 // 曜日ごとの「いつものメニュー」テンプレート定義
 // day: 0=日, 1=月, 2=火, ... 6=土 (Date.getDay())
+//
+// 有酸素運動の距離・時間・傾斜有無はプロフィール画面の「有酸素運動」設定値を使う。
+// ここでは曜日ごとに「どちらを使うか」「筋トレ・ストレッチを出すか」だけを決める。
 
 const TEMPLATES = {
   monday: {
-    cardio: { type: "walk", distanceKm: 5, durationMin: 60, incline: true, isRunWalkCombo: false },
+    cardioType: "walk",
     showStrength: false,
     showStretch: true,
     stretchDurationMin: 40,
   },
   default: {
-    cardio: { type: "run", distanceKm: 7, durationMin: 60, incline: false, isRunWalkCombo: true },
+    cardioType: "run",
     showStrength: true,
     showStretch: false,
     stretchDurationMin: 0,
