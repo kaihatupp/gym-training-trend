@@ -686,7 +686,7 @@ function updateCalorieEstimate() {
   calorieLossEl.textContent = `約${targets.loss} kcal`;
   calorieGainEl.textContent = `約${targets.gain} kcal`;
 
-  const meal = pickMealExample(targets.maintenance);
+  const meal = pickMealExample(targets.loss);
   if (meal) {
     mealExampleBlock.hidden = false;
     document.getElementById("meal-breakfast").textContent = meal.breakfast;
