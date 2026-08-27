@@ -22,6 +22,7 @@
 <nav id="main-tabs" class="tab-bar">
   <button type="button" class="tab-btn active" data-view="home">今日の記録</button>
   <button type="button" class="tab-btn" data-view="list">記録一覧</button>
+  <button type="button" class="tab-btn" data-view="graph">グラフ</button>
   <button type="button" class="tab-btn" data-view="profile">プロフィール</button>
 </nav>
 
@@ -101,6 +102,17 @@
     <button type="button" id="records-toggle" hidden></button>
   </section>
 
+  <section id="view-graph" class="view">
+    <h2>重量推移グラフ</h2>
+    <div class="selector-row" id="machine-tabs"></div>
+    <p id="machine-tabs-empty" class="hint" hidden>登録済みのマシンがありません。プロフィール画面で登録してください。</p>
+
+    <div class="chart-wrap">
+      <canvas id="chart-canvas"></canvas>
+    </div>
+    <p id="chart-empty" class="empty" hidden>このマシンの記録がまだありません</p>
+  </section>
+
   <section id="view-profile" class="view">
     <h2>筋トレマシン登録</h2>
     <p class="hint">ウエイトはマシンごとに保持されます。変更があった時だけ編集してください。</p>
@@ -126,13 +138,25 @@
           <input type="number" id="machineSets" name="machineSets" inputmode="numeric" step="1" min="0" value="3">
         </div>
       </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="machineTargetWeight">目標重量 (kg)</label>
+          <input type="number" id="machineTargetWeight" name="machineTargetWeight" inputmode="decimal" step="0.5" min="0" placeholder="任意">
+        </div>
+        <div class="field">
+          <label for="machineTargetReps">目標回数</label>
+          <input type="number" id="machineTargetReps" name="machineTargetReps" inputmode="numeric" step="1" min="0" placeholder="任意">
+        </div>
+      </div>
       <button type="submit" id="add-machine-btn" class="secondary-btn">追加する</button>
     </form>
   </section>
 </main>
 
+<script src="lib/chart.umd.min.js"></script>
 <script src="templates.js"></script>
 <script src="app.js"></script>
+<script src="charts.js"></script>
 <script src="pwa.js"></script>
 </body>
 </html>
