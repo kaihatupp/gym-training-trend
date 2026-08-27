@@ -56,10 +56,11 @@ function ensureProfileSeeded() {
       heightCm: null,
       weightKg: null,
       age: null,
+      gender: null,
     };
     changed = true;
   } else {
-    // 既存プロフィール(フェーズ1/2)に無い項目を後方互換で補う
+    // 既存プロフィール(フェーズ1/2/3以前)に無い項目を後方互換で補う
     if (!Array.isArray(profile.cardio)) {
       profile.cardio = DEFAULT_CARDIO.map((c) => ({ ...c }));
       changed = true;
@@ -74,6 +75,10 @@ function ensureProfileSeeded() {
     }
     if (profile.age === undefined) {
       profile.age = null;
+      changed = true;
+    }
+    if (profile.gender === undefined) {
+      profile.gender = null;
       changed = true;
     }
     for (const m of profile.machines) {
@@ -212,6 +217,11 @@ function attachAutoDecimalInput(el) {
     return `${parseInt(intPart, 10)}.${decPart}`;
   }
 
+  function setValue(v) {
+    el.value = v;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
   el.addEventListener("focus", () => {
     buffer = "";
   });
@@ -220,11 +230,11 @@ function attachAutoDecimalInput(el) {
     if (e.inputType === "insertText" && e.data && /^[0-9]+$/.test(e.data)) {
       e.preventDefault();
       buffer = (buffer + e.data).slice(0, 4);
-      el.value = format();
+      setValue(format());
     } else if (e.inputType === "deleteContentBackward" || e.inputType === "deleteContentForward") {
       e.preventDefault();
       buffer = buffer.slice(0, -1);
-      el.value = format();
+      setValue(format());
     } else {
       e.preventDefault();
     }
@@ -234,7 +244,7 @@ function attachAutoDecimalInput(el) {
     e.preventDefault();
     const text = (e.clipboardData || window.clipboardData).getData("text");
     buffer = text.replace(/[^0-9]/g, "").slice(0, 4);
-    el.value = format();
+    setValue(format());
   });
 
   el._resetAutoDecimalBuffer = () => {
@@ -426,12 +436,16 @@ machineForm.addEventListener("submit", (e) => {
 const profileHeightInput = document.getElementById("profileHeight");
 const profileWeightInput = document.getElementById("profileWeight");
 const profileAgeInput = document.getElementById("profileAge");
+const profileGenderInputs = document.querySelectorAll('input[name="profileGender"]');
 
 function renderBasicInfo() {
   const profile = ensureProfileSeeded();
   profileHeightInput.value = profile.heightCm ?? "";
   profileWeightInput.value = profile.weightKg ?? "";
   profileAgeInput.value = profile.age ?? "";
+  for (const radio of profileGenderInputs) {
+    radio.checked = radio.value === profile.gender;
+  }
 }
 
 function handleBasicInfoChange(e) {
@@ -439,6 +453,8 @@ function handleBasicInfoChange(e) {
   profile.heightCm = getNumberOrNull(profileHeightInput);
   profile.weightKg = getNumberOrNull(profileWeightInput);
   profile.age = getNumberOrNull(profileAgeInput);
+  const checkedGender = document.querySelector('input[name="profileGender"]:checked');
+  profile.gender = checkedGender ? checkedGender.value : null;
   saveProfile(profile);
   if (e.target === profileWeightInput) {
     renderMachinesList();
@@ -448,6 +464,9 @@ function handleBasicInfoChange(e) {
 profileHeightInput.addEventListener("change", handleBasicInfoChange);
 profileWeightInput.addEventListener("change", handleBasicInfoChange);
 profileAgeInput.addEventListener("change", handleBasicInfoChange);
+for (const radio of profileGenderInputs) {
+  radio.addEventListener("change", handleBasicInfoChange);
+}
 
 // ---------- 有酸素運動プロフィール ----------
 
@@ -611,7 +630,73 @@ function populateFormForDate(date) {
   }
 
   stretchGroup.hidden = !isMonday(date);
+  updateCalorieEstimate();
 }
+
+// ---------- 推定カロリー(フェーズ3) ----------
+
+const calorieBurnedEl = document.getElementById("calorie-burned");
+const calorieIntakeBlock = document.getElementById("calorie-intake-block");
+const calorieMaintenanceEl = document.getElementById("calorie-maintenance");
+const calorieLossEl = document.getElementById("calorie-loss");
+const calorieGainEl = document.getElementById("calorie-gain");
+const calorieProfileHint = document.getElementById("calorie-profile-hint");
+const mealExampleBlock = document.getElementById("meal-example-block");
+
+function buildDraftFromForm() {
+  const strengthEntries = [];
+  for (const row of strengthMachinesEl.querySelectorAll(".strength-row")) {
+    if (row.querySelector(".s-checked").checked) strengthEntries.push({});
+  }
+  return {
+    cardio: {
+      type: getCardioType(),
+      durationMin: getNumberOrNull(durationMinInput),
+      incline: inclineInput.checked,
+    },
+    strength: { entries: strengthEntries },
+    stretch: { durationMin: getNumberOrNull(stretchDurationInput) },
+  };
+}
+
+function updateCalorieEstimate() {
+  const draft = buildDraftFromForm();
+  const inputWeight = getNumberOrNull(bodyWeightInput);
+  const weight = inputWeight !== null ? inputWeight : getReferenceBodyWeightKg();
+
+  const exerciseKcal = estimateExerciseKcal(draft, weight);
+  calorieBurnedEl.textContent = exerciseKcal !== null ? `約${exerciseKcal} kcal` : "-";
+
+  const profile = ensureProfileSeeded();
+  const targets = estimateCalorieTargets(profile, exerciseKcal);
+
+  if (!targets) {
+    calorieIntakeBlock.hidden = true;
+    mealExampleBlock.hidden = true;
+    calorieProfileHint.hidden = false;
+    return;
+  }
+
+  calorieProfileHint.hidden = true;
+  calorieIntakeBlock.hidden = false;
+  calorieMaintenanceEl.textContent = `約${targets.maintenance} kcal`;
+  calorieLossEl.textContent = `約${targets.loss} kcal`;
+  calorieGainEl.textContent = `約${targets.gain} kcal`;
+
+  const meal = pickMealExample(targets.maintenance);
+  if (meal) {
+    mealExampleBlock.hidden = false;
+    document.getElementById("meal-breakfast").textContent = meal.breakfast;
+    document.getElementById("meal-lunch").textContent = meal.lunch;
+    document.getElementById("meal-dinner").textContent = meal.dinner;
+    document.getElementById("meal-snack").textContent = meal.snack;
+  } else {
+    mealExampleBlock.hidden = true;
+  }
+}
+
+form.addEventListener("input", updateCalorieEstimate);
+form.addEventListener("change", updateCalorieEstimate);
 
 dateInput.addEventListener("change", () => {
   populateFormForDate(dateInput.value);
@@ -704,6 +789,13 @@ function summarizeLog(log) {
   if (log.stretch && log.stretch.durationMin) {
     parts.push(`ストレッチ ${log.stretch.durationMin}分`);
   }
+
+  const weight = log.bodyWeightKg !== null && log.bodyWeightKg !== undefined ? log.bodyWeightKg : getReferenceBodyWeightKg();
+  const kcal = estimateExerciseKcal(log, weight);
+  if (kcal !== null) {
+    parts.push(`消費カロリー概算 ${kcal}kcal`);
+  }
+
   return parts.length > 0 ? parts.join(" / ") : "記録なし";
 }
 

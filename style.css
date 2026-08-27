@@ -235,6 +235,61 @@ textarea {
   font-size: 0.85rem;
 }
 
+/* 推定カロリー(今日の記録) */
+
+.calorie-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.calorie-line:first-of-type {
+  border-top: none;
+}
+
+.calorie-label {
+  color: #555;
+}
+
+.calorie-value {
+  font-weight: bold;
+  color: #2f5d7d;
+}
+
+#calorie-profile-hint {
+  margin: 8px 0 0;
+}
+
+#meal-example-block {
+  margin-top: 12px;
+  border-top: 1px solid #eee;
+  padding-top: 8px;
+}
+
+.meal-example-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.meal-example-list li {
+  display: flex;
+  gap: 8px;
+  font-size: 0.85rem;
+  padding: 4px 0;
+  line-height: 1.5;
+}
+
+.meal-label {
+  flex: 0 0 auto;
+  font-weight: bold;
+  color: #444;
+  min-width: 3.5em;
+}
+
 /* 記録一覧 */
 
 #records-list,

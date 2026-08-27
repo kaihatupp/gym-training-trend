@@ -1,10 +1,11 @@
-const CACHE_NAME = "gym-training-trend-cache-v4";
+const CACHE_NAME = "gym-training-trend-cache-v5";
 const PRECACHE_FILES = [
   "./",
   "index.html",
   "style.css",
   "app.js",
   "templates.js",
+  "calorie.js",
   "backup.js",
   "pwa.js",
   "manifest.json",
