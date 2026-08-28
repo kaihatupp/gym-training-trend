@@ -57,6 +57,7 @@ function ensureProfileSeeded() {
       weightKg: null,
       age: null,
       gender: null,
+      mealItems: [],
     };
     changed = true;
   } else {
@@ -79,6 +80,10 @@ function ensureProfileSeeded() {
     }
     if (profile.gender === undefined) {
       profile.gender = null;
+      changed = true;
+    }
+    if (!Array.isArray(profile.mealItems)) {
+      profile.mealItems = [];
       changed = true;
     }
     for (const m of profile.machines) {
@@ -290,6 +295,7 @@ function showView(name) {
     renderBasicInfo();
     renderCardioList();
     renderMachinesList();
+    renderMealItemsList();
   }
 }
 
@@ -432,6 +438,103 @@ machineForm.addEventListener("submit", (e) => {
   repsInput.value = 15;
   setsInput.value = 3;
   renderMachinesList();
+});
+
+// ---------- よく使うメニュー(摂取カロリー実績用) ----------
+
+const mealItemsList = document.getElementById("meal-items-list");
+const mealItemForm = document.getElementById("meal-item-form");
+
+function renderMealItemsList() {
+  const profile = ensureProfileSeeded();
+  mealItemsList.innerHTML = "";
+
+  if (profile.mealItems.length === 0) {
+    const li = document.createElement("li");
+    li.className = "empty";
+    li.textContent = "メニューが登録されていません";
+    mealItemsList.appendChild(li);
+    return;
+  }
+
+  for (const item of profile.mealItems) {
+    const li = document.createElement("li");
+    li.dataset.id = item.id;
+    li.innerHTML = `
+      <div class="field-row">
+        <div class="field">
+          <label>メニュー名</label>
+          <input type="text" class="mi-name" value="${escapeAttr(item.name)}">
+        </div>
+        <div class="field">
+          <label>kcal</label>
+          <input type="number" class="mi-kcal" step="1" min="0" value="${item.kcal ?? ""}">
+        </div>
+      </div>
+      <div class="list-item-footer">
+        <button type="button" class="delete-btn mi-delete">削除</button>
+      </div>
+    `;
+    mealItemsList.appendChild(li);
+  }
+}
+
+mealItemsList.addEventListener("change", (e) => {
+  const li = e.target.closest("li[data-id]");
+  if (!li) return;
+  const profile = ensureProfileSeeded();
+  const item = profile.mealItems.find((i) => i.id === li.dataset.id);
+  if (!item) return;
+
+  if (e.target.classList.contains("mi-name")) {
+    item.name = e.target.value.trim() || item.name;
+  } else if (e.target.classList.contains("mi-kcal")) {
+    item.kcal = getNumberOrNull(e.target);
+  } else {
+    return;
+  }
+  saveProfile(profile);
+  renderMealItemsList();
+  renderMealQuickButtons();
+});
+
+mealItemsList.addEventListener("click", (e) => {
+  const deleteBtn = e.target.closest(".mi-delete");
+  if (!deleteBtn) return;
+  const li = deleteBtn.closest("li[data-id]");
+  if (!li) return;
+  const profile = ensureProfileSeeded();
+  const item = profile.mealItems.find((i) => i.id === li.dataset.id);
+  if (!item) return;
+  if (!confirm(`「${item.name}」を削除しますか?`)) return;
+  profile.mealItems = profile.mealItems.filter((i) => i.id !== li.dataset.id);
+  saveProfile(profile);
+  renderMealItemsList();
+  renderMealQuickButtons();
+});
+
+mealItemForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const nameInput = document.getElementById("mealItemName");
+  const kcalInput = document.getElementById("mealItemKcal");
+
+  const name = nameInput.value.trim();
+  if (!name) {
+    alert("メニュー名を入力してください");
+    return;
+  }
+
+  const profile = ensureProfileSeeded();
+  profile.mealItems.push({
+    id: makeId(),
+    name,
+    kcal: getNumberOrNull(kcalInput),
+  });
+  saveProfile(profile);
+
+  mealItemForm.reset();
+  renderMealItemsList();
+  renderMealQuickButtons();
 });
 
 // ---------- 基本情報(身長・体重・年齢) ----------
@@ -605,6 +708,77 @@ function renderStrengthMachines(existingEntries) {
   }
 }
 
+// ---------- 今日の食事(摂取カロリー実績) ----------
+
+const mealKcalInputs = {};
+const mealQuickContainers = {};
+for (const mt of MEAL_TYPES) {
+  mealKcalInputs[mt.key] = document.getElementById(`mealKcal-${mt.key}`);
+  mealQuickContainers[mt.key] = document.getElementById(`mealQuick-${mt.key}`);
+}
+const mealsGroup = document.getElementById("meals-group");
+let selectedMealItemId = {};
+
+function renderMealQuickButtons() {
+  const profile = ensureProfileSeeded();
+  for (const mt of MEAL_TYPES) {
+    const container = mealQuickContainers[mt.key];
+    container.innerHTML = profile.mealItems
+      .map(
+        (item) =>
+          `<button type="button" class="meal-quick-btn" data-meal-type="${mt.key}" data-item-id="${item.id}">${escapeAttr(item.name)}(${item.kcal ?? "-"}kcal)</button>`
+      )
+      .join("");
+  }
+}
+
+mealsGroup.addEventListener("click", (e) => {
+  const btn = e.target.closest(".meal-quick-btn");
+  if (!btn) return;
+  const type = btn.dataset.mealType;
+  const profile = ensureProfileSeeded();
+  const item = profile.mealItems.find((i) => i.id === btn.dataset.itemId);
+  if (!item) return;
+  mealKcalInputs[type].value = item.kcal ?? "";
+  selectedMealItemId[type] = item.id;
+  mealKcalInputs[type].dispatchEvent(new Event("input", { bubbles: true }));
+});
+
+// 入力中のkcalが、選択済みのメニューの値のままなら mealItemId を記録として残す
+// (手入力で上書きされた場合はメニューとの紐付けを外す)
+function getMealItemIdIfMatches(type) {
+  const id = selectedMealItemId[type];
+  if (!id) return null;
+  const profile = ensureProfileSeeded();
+  const item = profile.mealItems.find((i) => i.id === id);
+  const val = getNumberOrNull(mealKcalInputs[type]);
+  return item && item.kcal === val ? id : null;
+}
+
+function buildMealsFromForm() {
+  const meals = [];
+  for (const mt of MEAL_TYPES) {
+    const kcal = getNumberOrNull(mealKcalInputs[mt.key]);
+    if (kcal === null) continue;
+    const mealItemId = getMealItemIdIfMatches(mt.key);
+    meals.push(mealItemId ? { mealType: mt.key, kcal, mealItemId } : { mealType: mt.key, kcal });
+  }
+  return meals;
+}
+
+function populateMealsForLog(existingMeals) {
+  selectedMealItemId = {};
+  const byType = {};
+  if (existingMeals) {
+    for (const m of existingMeals) byType[m.mealType] = m;
+  }
+  for (const mt of MEAL_TYPES) {
+    const entry = byType[mt.key];
+    mealKcalInputs[mt.key].value = entry && entry.kcal !== null && entry.kcal !== undefined ? entry.kcal : "";
+    if (entry && entry.mealItemId) selectedMealItemId[mt.key] = entry.mealItemId;
+  }
+}
+
 function populateFormForDate(date) {
   const existing = findLog(date);
   const templ = getTemplateForDate(date);
@@ -619,6 +793,7 @@ function populateFormForDate(date) {
     stretchDurationInput.value = existing.stretch && existing.stretch.durationMin !== null ? existing.stretch.durationMin : "";
     memoInput.value = existing.memo || "";
     renderStrengthMachines(existing.strength ? existing.strength.entries : []);
+    populateMealsForLog(existing.meals);
   } else {
     const cardioDefaults = getCardioProfile(templ.cardioType);
     setTextFieldValue(bodyWeightInput, "");
@@ -630,8 +805,10 @@ function populateFormForDate(date) {
     stretchDurationInput.value = templ.showStretch ? templ.stretchDurationMin : "";
     memoInput.value = "";
     renderStrengthMachines(null);
+    populateMealsForLog(null);
   }
 
+  renderMealQuickButtons();
   stretchGroup.hidden = !isMonday(date);
   updateCalorieEstimate();
 }
@@ -644,6 +821,9 @@ const calorieMaintenanceEl = document.getElementById("calorie-maintenance");
 const calorieLossEl = document.getElementById("calorie-loss");
 const calorieGainEl = document.getElementById("calorie-gain");
 const calorieProfileHint = document.getElementById("calorie-profile-hint");
+const calorieIntakeActualEl = document.getElementById("calorie-intake-actual");
+const calorieRemainingLine = document.getElementById("calorie-remaining-line");
+const calorieRemainingEl = document.getElementById("calorie-remaining");
 
 function buildDraftFromForm() {
   const strengthEntries = [];
@@ -669,12 +849,16 @@ function updateCalorieEstimate() {
   const exerciseKcal = estimateExerciseKcal(draft, weight);
   calorieBurnedEl.textContent = exerciseKcal !== null ? `約${exerciseKcal} kcal` : "-";
 
+  const intakeActual = sumMealsKcal(buildMealsFromForm());
+  calorieIntakeActualEl.textContent = intakeActual !== null ? `${intakeActual} kcal` : "-";
+
   const profile = ensureProfileSeeded();
   const targets = estimateCalorieTargets(profile, exerciseKcal);
 
   if (!targets) {
     calorieIntakeBlock.hidden = true;
     calorieProfileHint.hidden = false;
+    calorieRemainingLine.hidden = true;
     return;
   }
 
@@ -683,6 +867,16 @@ function updateCalorieEstimate() {
   calorieMaintenanceEl.textContent = `約${targets.maintenance} kcal`;
   calorieLossEl.textContent = `約${targets.loss} kcal`;
   calorieGainEl.textContent = `約${targets.gain} kcal`;
+
+  if (intakeActual === null) {
+    calorieRemainingLine.hidden = true;
+    return;
+  }
+  calorieRemainingLine.hidden = false;
+  const diff = targets.loss - intakeActual;
+  calorieRemainingEl.classList.toggle("calorie-ok", diff >= 0);
+  calorieRemainingEl.classList.toggle("calorie-over", diff < 0);
+  calorieRemainingEl.textContent = diff >= 0 ? `あと${diff}kcalまでOK` : `${Math.abs(diff)}kcalオーバー`;
 }
 
 form.addEventListener("input", updateCalorieEstimate);
@@ -727,6 +921,7 @@ form.addEventListener("submit", (e) => {
     },
     strength: { entries: strengthEntries },
     stretch: { durationMin: getNumberOrNull(stretchDurationInput) },
+    meals: buildMealsFromForm(),
     memo: memoInput.value.trim(),
     createdAt: now,
     updatedAt: now,
@@ -784,6 +979,11 @@ function summarizeLog(log) {
   const kcal = estimateExerciseKcal(log, weight);
   if (kcal !== null) {
     parts.push(`消費カロリー概算 ${kcal}kcal`);
+  }
+
+  const intakeActual = sumMealsKcal(log.meals);
+  if (intakeActual !== null) {
+    parts.push(`摂取カロリー実績 ${intakeActual}kcal`);
   }
 
   return parts.length > 0 ? parts.join(" / ") : "記録なし";

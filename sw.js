@@ -1,4 +1,4 @@
-const CACHE_NAME = "gym-training-trend-cache-v8";
+const CACHE_NAME = "gym-training-trend-cache-v9";
 const PRECACHE_FILES = [
   "./",
   "index.html",

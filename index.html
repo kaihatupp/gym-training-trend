@@ -85,6 +85,43 @@
         </div>
       </fieldset>
 
+      <fieldset class="group" id="meals-group">
+        <legend>今日の食事(実績)</legend>
+        <p class="hint">kcalを直接入力するか、よく使うメニューから選ぶと自動入力されます(入力後の上書き可)。</p>
+
+        <div class="meal-row" data-meal-type="breakfast">
+          <div class="meal-row-header">
+            <label for="mealKcal-breakfast">朝食 (kcal)</label>
+            <input type="number" id="mealKcal-breakfast" class="meal-kcal" inputmode="numeric" step="1" min="0" placeholder="例: 450">
+          </div>
+          <div class="meal-quick-buttons" id="mealQuick-breakfast"></div>
+        </div>
+
+        <div class="meal-row" data-meal-type="lunch">
+          <div class="meal-row-header">
+            <label for="mealKcal-lunch">昼食 (kcal)</label>
+            <input type="number" id="mealKcal-lunch" class="meal-kcal" inputmode="numeric" step="1" min="0" placeholder="例: 700">
+          </div>
+          <div class="meal-quick-buttons" id="mealQuick-lunch"></div>
+        </div>
+
+        <div class="meal-row" data-meal-type="dinner">
+          <div class="meal-row-header">
+            <label for="mealKcal-dinner">夕食 (kcal)</label>
+            <input type="number" id="mealKcal-dinner" class="meal-kcal" inputmode="numeric" step="1" min="0" placeholder="例: 800">
+          </div>
+          <div class="meal-quick-buttons" id="mealQuick-dinner"></div>
+        </div>
+
+        <div class="meal-row" data-meal-type="snack">
+          <div class="meal-row-header">
+            <label for="mealKcal-snack">間食 (kcal)</label>
+            <input type="number" id="mealKcal-snack" class="meal-kcal" inputmode="numeric" step="1" min="0" placeholder="例: 200">
+          </div>
+          <div class="meal-quick-buttons" id="mealQuick-snack"></div>
+        </div>
+      </fieldset>
+
       <fieldset class="group" id="calorie-group">
         <legend>推定カロリー(参考)</legend>
         <p class="hint">一般的な計算式による概算です。医学的な指導や個別の栄養指導ではありません。</p>
@@ -92,6 +129,11 @@
         <div class="calorie-line">
           <span class="calorie-label">消費カロリー概算(本日の内容)</span>
           <span id="calorie-burned" class="calorie-value">-</span>
+        </div>
+
+        <div class="calorie-line">
+          <span class="calorie-label">摂取カロリー(実績・今日の食事合計)</span>
+          <span id="calorie-intake-actual" class="calorie-value">-</span>
         </div>
 
         <div id="calorie-intake-block">
@@ -109,6 +151,11 @@
           </div>
         </div>
         <p id="calorie-profile-hint" class="hint" hidden>プロフィール画面で身長・体重・年齢を入力すると摂取カロリー目安が表示されます。</p>
+
+        <div class="calorie-line" id="calorie-remaining-line" hidden>
+          <span class="calorie-label">減量目安まで</span>
+          <span id="calorie-remaining" class="calorie-value">-</span>
+        </div>
       </fieldset>
 
       <div class="field">
@@ -249,6 +296,25 @@
         </div>
       </div>
       <button type="submit" id="add-machine-btn" class="secondary-btn">追加する</button>
+    </form>
+
+    <h2>よく使うメニュー</h2>
+    <p class="hint">よく食べるメニューを登録しておくと、記録画面でワンタップでkcalを入力できます。</p>
+    <ul id="meal-items-list"></ul>
+
+    <h3>メニューを追加</h3>
+    <form id="meal-item-form">
+      <div class="field-row">
+        <div class="field">
+          <label for="mealItemName">メニュー名</label>
+          <input type="text" id="mealItemName" name="mealItemName" required placeholder="例: いつもの朝食">
+        </div>
+        <div class="field">
+          <label for="mealItemKcal">kcal</label>
+          <input type="number" id="mealItemKcal" name="mealItemKcal" inputmode="numeric" step="1" min="0" placeholder="例: 450">
+        </div>
+      </div>
+      <button type="submit" id="add-meal-item-btn" class="secondary-btn">追加する</button>
     </form>
   </section>
 </main>

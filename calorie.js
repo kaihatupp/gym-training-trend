@@ -1,7 +1,22 @@
-// フェーズ3: 消費カロリー・摂取カロリー目安・食事例(簡易計算)
+// フェーズ3: 消費カロリー・摂取カロリー目安(簡易計算)・摂取カロリー実績記録
 //
-// いずれも一般的な計算式(METs法・Mifflin-St Jeor式)による概算であり、
-// 医学的な指導や個別の栄養指導を代替するものではない。
+// 消費カロリー・摂取カロリー目安はいずれも一般的な計算式(METs法・Mifflin-St Jeor式)
+// による概算であり、医学的な指導や個別の栄養指導を代替するものではない。
+
+const MEAL_TYPES = [
+  { key: "breakfast", label: "朝食" },
+  { key: "lunch", label: "昼食" },
+  { key: "dinner", label: "夕食" },
+  { key: "snack", label: "間食" },
+];
+
+// meals: WorkoutLog.meals ( [{mealType, kcal, mealItemId?, memo?}] ) の合計kcal
+function sumMealsKcal(meals) {
+  if (!Array.isArray(meals) || meals.length === 0) return null;
+  const withKcal = meals.filter((m) => typeof m.kcal === "number" && !Number.isNaN(m.kcal));
+  if (withKcal.length === 0) return null;
+  return Math.round(withKcal.reduce((sum, m) => sum + m.kcal, 0));
+}
 
 const METS = {
   walkFlat: 3.5,

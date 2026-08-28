@@ -39,6 +39,8 @@ function sanitizeImportedLog(l) {
   const strength = l.strength && typeof l.strength === "object" ? l.strength : {};
   const entries = Array.isArray(strength.entries) ? strength.entries : [];
   const stretch = l.stretch && typeof l.stretch === "object" ? l.stretch : {};
+  const meals = Array.isArray(l.meals) ? l.meals : [];
+  const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
 
   return {
     id: typeof l.id === "string" ? l.id : makeId(),
@@ -62,6 +64,14 @@ function sanitizeImportedLog(l) {
         })),
     },
     stretch: { durationMin: num(stretch.durationMin) },
+    meals: meals
+      .filter((m) => m && typeof m.mealType === "string" && mealTypes.includes(m.mealType))
+      .map((m) => ({
+        mealType: m.mealType,
+        kcal: num(m.kcal),
+        ...(typeof m.mealItemId === "string" ? { mealItemId: m.mealItemId } : {}),
+        ...(typeof m.memo === "string" ? { memo: m.memo } : {}),
+      })),
     memo: typeof l.memo === "string" ? l.memo : "",
     createdAt: typeof l.createdAt === "string" ? l.createdAt : new Date().toISOString(),
     updatedAt: typeof l.updatedAt === "string" ? l.updatedAt : new Date().toISOString(),
