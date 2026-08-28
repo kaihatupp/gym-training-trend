@@ -77,6 +77,7 @@ function computeStreaks() {
 
 function aggregatePeriod(start, end) {
   const logs = loadLogs().filter((l) => l.date >= start && l.date <= end);
+  const targets = estimateCalorieTargets(ensureProfileSeeded());
 
   let totalDistanceKm = 0;
   let totalCardioMin = 0;
@@ -90,6 +91,9 @@ function aggregatePeriod(start, end) {
   let totalKcal = 0;
   let totalIntakeKcal = 0;
   let hasIntakeData = false;
+  let overDaysWithExercise = 0;
+  let overDaysWithoutExercise = 0;
+  let hasOverDayData = false;
 
   for (const log of logs) {
     if (log.cardio && log.cardio.durationMin) {
@@ -119,6 +123,12 @@ function aggregatePeriod(start, end) {
     if (intakeKcal !== null) {
       totalIntakeKcal += intakeKcal;
       hasIntakeData = true;
+
+      if (targets) {
+        hasOverDayData = true;
+        if (intakeKcal > targets.loss + (kcal || 0)) overDaysWithExercise++;
+        if (intakeKcal > targets.loss) overDaysWithoutExercise++;
+      }
     }
   }
 
@@ -133,6 +143,8 @@ function aggregatePeriod(start, end) {
     totalStretchMin,
     avgBodyWeightKg: weightCount > 0 ? Math.round((weightSum / weightCount) * 10) / 10 : null,
     totalKcal: Math.round(totalKcal),
+    overDaysWithExercise: hasOverDayData ? overDaysWithExercise : null,
+    overDaysWithoutExercise: hasOverDayData ? overDaysWithoutExercise : null,
     totalIntakeKcal: hasIntakeData ? Math.round(totalIntakeKcal) : null,
   };
 }
@@ -206,6 +218,8 @@ function renderPeriodSummary() {
     ["平均体重", stats.avgBodyWeightKg !== null ? `${stats.avgBodyWeightKg}kg` : "-"],
     ["消費カロリー合計", `約${stats.totalKcal}kcal`],
     ["摂取カロリー合計", stats.totalIntakeKcal !== null ? `約${stats.totalIntakeKcal}kcal` : "-"],
+    ["減量目安オーバー日数(運動分を加味)", stats.overDaysWithExercise !== null ? `${stats.overDaysWithExercise}日` : "-"],
+    ["減量目安オーバー日数(運動分含まず)", stats.overDaysWithoutExercise !== null ? `${stats.overDaysWithoutExercise}日` : "-"],
   ];
 
   const renderRows = (rows) =>
