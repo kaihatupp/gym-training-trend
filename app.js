@@ -901,6 +901,8 @@ const calorieProfileHint = document.getElementById("calorie-profile-hint");
 const calorieIntakeActualEl = document.getElementById("calorie-intake-actual");
 const calorieRemainingLine = document.getElementById("calorie-remaining-line");
 const calorieRemainingEl = document.getElementById("calorie-remaining");
+const calorieRemainingNoexLine = document.getElementById("calorie-remaining-noex-line");
+const calorieRemainingNoexEl = document.getElementById("calorie-remaining-noex");
 
 function buildDraftFromForm() {
   const strengthEntries = [];
@@ -936,6 +938,7 @@ function updateCalorieEstimate() {
     calorieIntakeBlock.hidden = true;
     calorieProfileHint.hidden = false;
     calorieRemainingLine.hidden = true;
+    calorieRemainingNoexLine.hidden = true;
     return;
   }
 
@@ -947,15 +950,23 @@ function updateCalorieEstimate() {
 
   if (intakeActual === null) {
     calorieRemainingLine.hidden = true;
+    calorieRemainingNoexLine.hidden = true;
     return;
   }
-  calorieRemainingLine.hidden = false;
-  // 減量目安 + 本日の運動による消費カロリー - 摂取カロリー(実績)。
+
+  const setRemainingLine = (lineEl, valueEl, diff) => {
+    lineEl.hidden = false;
+    valueEl.classList.toggle("calorie-ok", diff >= 0);
+    valueEl.classList.toggle("calorie-over", diff < 0);
+    valueEl.textContent = diff >= 0 ? `あと${diff}kcalまでOK` : `${Math.abs(diff)}kcalオーバー`;
+  };
+
+  // 運動分を加味: 減量目安 + 本日の運動による消費カロリー - 摂取カロリー(実績)。
   // 運動した分だけ、その日食べられる量が増える形にする。
-  const diff = targets.loss + (exerciseKcal || 0) - intakeActual;
-  calorieRemainingEl.classList.toggle("calorie-ok", diff >= 0);
-  calorieRemainingEl.classList.toggle("calorie-over", diff < 0);
-  calorieRemainingEl.textContent = diff >= 0 ? `あと${diff}kcalまでOK` : `${Math.abs(diff)}kcalオーバー`;
+  setRemainingLine(calorieRemainingLine, calorieRemainingEl, targets.loss + (exerciseKcal || 0) - intakeActual);
+
+  // 運動分を含まず: 減量目安 - 摂取カロリー(実績)のみ。
+  setRemainingLine(calorieRemainingNoexLine, calorieRemainingNoexEl, targets.loss - intakeActual);
 }
 
 form.addEventListener("input", updateCalorieEstimate);
