@@ -315,8 +315,26 @@ textarea {
   background: #fbeae8;
 }
 
-.meal-select {
+.meal-select-row {
+  display: flex;
+  gap: 8px;
   margin-bottom: 8px;
+}
+
+.meal-select-row .meal-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.meal-qty {
+  flex: 0 0 4.5em;
+  width: 4.5em;
+}
+
+.meal-select-add {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0 16px;
 }
 
 .meal-custom-row {
