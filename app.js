@@ -644,7 +644,6 @@ const calorieMaintenanceEl = document.getElementById("calorie-maintenance");
 const calorieLossEl = document.getElementById("calorie-loss");
 const calorieGainEl = document.getElementById("calorie-gain");
 const calorieProfileHint = document.getElementById("calorie-profile-hint");
-const mealExampleBlock = document.getElementById("meal-example-block");
 
 function buildDraftFromForm() {
   const strengthEntries = [];
@@ -675,7 +674,6 @@ function updateCalorieEstimate() {
 
   if (!targets) {
     calorieIntakeBlock.hidden = true;
-    mealExampleBlock.hidden = true;
     calorieProfileHint.hidden = false;
     return;
   }
@@ -685,17 +683,6 @@ function updateCalorieEstimate() {
   calorieMaintenanceEl.textContent = `約${targets.maintenance} kcal`;
   calorieLossEl.textContent = `約${targets.loss} kcal`;
   calorieGainEl.textContent = `約${targets.gain} kcal`;
-
-  const meal = pickMealExample(targets.loss);
-  if (meal) {
-    mealExampleBlock.hidden = false;
-    document.getElementById("meal-breakfast").textContent = meal.breakfast;
-    document.getElementById("meal-lunch").textContent = meal.lunch;
-    document.getElementById("meal-dinner").textContent = meal.dinner;
-    document.getElementById("meal-snack").textContent = meal.snack;
-  } else {
-    mealExampleBlock.hidden = true;
-  }
 }
 
 form.addEventListener("input", updateCalorieEstimate);
