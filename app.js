@@ -13,29 +13,6 @@ const DEFAULT_CARDIO = [
   { type: "run", label: "ランニング", distanceKm: 7, durationMin: 60, incline: false, isRunWalkCombo: true },
 ];
 
-// よく使うメニューの初期登録リスト(2026-08-28時点)。既存プロフィールへは
-// mealItemsSeeded フラグにより一度だけ反映する(ensureProfileSeeded参照)。
-const DEFAULT_MEAL_ITEMS = [
-  { id: "miso-soup-nasu-kyabetsu", name: "味噌汁(なす・きゃべつ)", kcal: 50 },
-  { id: "bento-shogayaki", name: "お弁当(生姜焼き)", kcal: 780 },
-  { id: "bento-shake-tsukune", name: "お弁当(焼き鮭・つくね)", kcal: 700 },
-  { id: "imo-jochu-rock", name: "芋焼酎ロック1杯", kcal: 130 },
-  { id: "yakiniku", name: "焼き肉(牛・鶏中心)", kcal: 650 },
-  { id: "sushi", name: "お寿司(1人前)", kcal: 550 },
-  { id: "milk", name: "牛乳1杯", kcal: 130 },
-  { id: "temaki", name: "手巻き(のり・魚・ひきわり納豆)", kcal: 1180 },
-  { id: "pizza-meat", name: "自作ピザ(肉)", kcal: 850 },
-  { id: "pizza-shirasu", name: "自作ピザ(しらす)", kcal: 750 },
-  { id: "white-wine", name: "白ワイン1杯", kcal: 90 },
-  { id: "chashu-200g", name: "チャーシュー200g", kcal: 480 },
-  { id: "sanshoku-don", name: "三色丼(しらす・めかぶ・卵焼き)", kcal: 550 },
-  { id: "hiyashi-chuka", name: "冷やし中華", kcal: 500 },
-  { id: "ramen-fukuromen", name: "ラーメン(袋麺)", kcal: 470 },
-  { id: "ramen-tonkotsu", name: "ラーメン(とんこつ・お店)", kcal: 700 },
-  { id: "soba-zaru", name: "そば(ざる)", kcal: 320 },
-  { id: "soba-curry", name: "そば(カレーそば)", kcal: 480 },
-];
-
 function makeId() {
   return typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
@@ -80,8 +57,7 @@ function ensureProfileSeeded() {
       weightKg: null,
       age: null,
       gender: null,
-      mealItems: DEFAULT_MEAL_ITEMS.map((m) => ({ ...m })),
-      mealItemsSeeded: true,
+      mealItems: [],
     };
     changed = true;
   } else {
@@ -108,16 +84,6 @@ function ensureProfileSeeded() {
     }
     if (!Array.isArray(profile.mealItems)) {
       profile.mealItems = [];
-      changed = true;
-    }
-    // 「よく使うメニュー」の初期データは、まだ一度も反映していない(mealItemsSeeded
-    // が無い)かつ未登録の場合に限り一度だけ流し込む。ユーザーが後で全削除しても
-    // 再度湧いてこないよう、流し込んだ後は必ずフラグを立てる。
-    if (!profile.mealItemsSeeded) {
-      if (profile.mealItems.length === 0) {
-        profile.mealItems = DEFAULT_MEAL_ITEMS.map((m) => ({ ...m }));
-      }
-      profile.mealItemsSeeded = true;
       changed = true;
     }
     for (const m of profile.machines) {
