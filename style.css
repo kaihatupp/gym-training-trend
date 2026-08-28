@@ -269,33 +269,6 @@ textarea {
   margin: 8px 0 0;
 }
 
-#meal-example-block {
-  margin-top: 12px;
-  border-top: 1px solid #eee;
-  padding-top: 8px;
-}
-
-.meal-example-list {
-  list-style: none;
-  margin: 4px 0 0;
-  padding: 0;
-}
-
-.meal-example-list li {
-  display: flex;
-  gap: 8px;
-  font-size: 0.85rem;
-  padding: 4px 0;
-  line-height: 1.5;
-}
-
-.meal-label {
-  flex: 0 0 auto;
-  font-weight: bold;
-  color: #444;
-  min-width: 3.5em;
-}
-
 /* 記録一覧 */
 
 #records-list,
