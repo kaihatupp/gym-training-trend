@@ -272,13 +272,22 @@ const views = {
   profile: document.getElementById("view-profile"),
 };
 
+let currentView = "home";
+
 tabBar.addEventListener("click", (e) => {
   const btn = e.target.closest(".tab-btn");
   if (!btn) return;
+  if (currentView === "home" && btn.dataset.view !== "home" && !confirmDiscardIfDirty()) {
+    return;
+  }
+  if (currentView === "home" && btn.dataset.view !== "home") {
+    markFormClean();
+  }
   showView(btn.dataset.view);
 });
 
 function showView(name) {
+  currentView = name;
   for (const btn of tabBar.querySelectorAll(".tab-btn")) {
     btn.classList.toggle("active", btn.dataset.view === name);
   }
@@ -649,6 +658,42 @@ const strengthEmptyEl = document.getElementById("strength-empty");
 
 attachAutoDecimalInput(bodyWeightInput);
 
+// ---------- 保存し忘れ防止(離脱ガード) ----------
+//
+// 「今日の記録」フォームを編集した後、保存せずに他タブへ移動したり日付を
+// 変更したりすると入力内容が失われるため、離脱前に確認を挟む。
+
+let formIsDirty = false;
+let lastLoadedDate = dateInput.value;
+
+function markFormDirty() {
+  formIsDirty = true;
+}
+
+function markFormClean() {
+  formIsDirty = false;
+}
+
+function confirmDiscardIfDirty() {
+  if (!formIsDirty) return true;
+  return confirm("保存されていない変更があります。移動すると入力内容が失われますが、よろしいですか?");
+}
+
+form.addEventListener("input", (e) => {
+  if (e.target === dateInput) return;
+  markFormDirty();
+});
+form.addEventListener("change", (e) => {
+  if (e.target === dateInput) return;
+  markFormDirty();
+});
+
+window.addEventListener("beforeunload", (e) => {
+  if (!formIsDirty) return;
+  e.preventDefault();
+  e.returnValue = "";
+});
+
 function setCardioType(type) {
   for (const radio of form.querySelectorAll('input[name="cardioType"]')) {
     radio.checked = radio.value === type;
@@ -776,12 +821,14 @@ function addMealEntry(type, entry) {
   mealEntries[type].push(entry);
   renderMealEntryList(type);
   updateCalorieEstimate();
+  markFormDirty();
 }
 
 function removeMealEntry(type, index) {
   mealEntries[type].splice(index, 1);
   renderMealEntryList(type);
   updateCalorieEstimate();
+  markFormDirty();
 }
 
 mealsGroup.addEventListener("click", (e) => {
@@ -888,6 +935,8 @@ function populateFormForDate(date) {
   renderMealSelects();
   stretchGroup.hidden = !isMonday(date);
   updateCalorieEstimate();
+  lastLoadedDate = date;
+  markFormClean();
 }
 
 // ---------- 推定カロリー(フェーズ3) ----------
@@ -973,6 +1022,10 @@ form.addEventListener("input", updateCalorieEstimate);
 form.addEventListener("change", updateCalorieEstimate);
 
 dateInput.addEventListener("change", () => {
+  if (!confirmDiscardIfDirty()) {
+    dateInput.value = lastLoadedDate;
+    return;
+  }
   populateFormForDate(dateInput.value);
 });
 
