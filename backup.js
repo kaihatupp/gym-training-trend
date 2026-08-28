@@ -70,6 +70,7 @@ function sanitizeImportedLog(l) {
         mealType: m.mealType,
         kcal: num(m.kcal),
         ...(typeof m.mealItemId === "string" ? { mealItemId: m.mealItemId } : {}),
+        ...(typeof m.qty === "number" && m.qty > 0 ? { qty: m.qty } : {}),
         ...(typeof m.memo === "string" ? { memo: m.memo } : {}),
       })),
     memo: typeof l.memo === "string" ? l.memo : "",

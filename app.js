@@ -711,14 +711,18 @@ function renderStrengthMachines(existingEntries) {
 // ---------- 今日の食事(摂取カロリー実績) ----------
 //
 // 1食につき複数のメニューを積み上げて合計する(例: 昼食=お弁当550kcal + ゆで卵120kcal)。
-// mealEntries[type] は { kcal, mealItemId? , memo? } の配列で、フォーム上の状態を保持する。
+// 登録済みメニューは数量を指定して追加できる(例: 焼酎1杯100kcal×3杯=300kcal)。
+// mealEntries[type] は { kcal, mealItemId?, qty?, memo? } の配列で、フォーム上の状態を保持する。
+// kcalは常にその項目の合計値(数量を掛けた後の値)を保持し、qtyは表示用の内訳情報として持つ。
 
 const mealSelectEls = {};
+const mealQtyEls = {};
 const mealEntriesListEls = {};
 const mealTotalEls = {};
 const mealCustomInputEls = {};
 for (const mt of MEAL_TYPES) {
   mealSelectEls[mt.key] = document.getElementById(`mealSelect-${mt.key}`);
+  mealQtyEls[mt.key] = document.getElementById(`mealQty-${mt.key}`);
   mealEntriesListEls[mt.key] = document.getElementById(`mealEntries-${mt.key}`);
   mealTotalEls[mt.key] = document.getElementById(`mealTotal-${mt.key}`);
   mealCustomInputEls[mt.key] = document.getElementById(`mealCustom-${mt.key}`);
@@ -733,8 +737,12 @@ function renderMealSelects() {
     .map((item) => `<option value="${item.id}">${escapeAttr(item.name)}(${item.kcal ?? "-"}kcal)</option>`)
     .join("");
   for (const mt of MEAL_TYPES) {
-    mealSelectEls[mt.key].innerHTML = `<option value="">メニューから追加...</option>${options}`;
+    mealSelectEls[mt.key].innerHTML = `<option value="">メニューを選択...</option>${options}`;
   }
+}
+
+function formatQty(qty) {
+  return Number.isInteger(qty) ? String(qty) : String(Math.round(qty * 10) / 10);
 }
 
 function renderMealEntryList(type) {
@@ -744,7 +752,8 @@ function renderMealEntryList(type) {
   mealEntriesListEls[type].innerHTML = entries
     .map((entry, index) => {
       const item = entry.mealItemId ? profile.mealItems.find((i) => i.id === entry.mealItemId) : null;
-      const label = entry.mealItemId ? (item ? item.name : "(削除済みメニュー)") : "手入力";
+      const baseLabel = entry.mealItemId ? (item ? item.name : "(削除済みメニュー)") : "手入力";
+      const label = entry.qty && entry.qty !== 1 ? `${baseLabel} × ${formatQty(entry.qty)}` : baseLabel;
       return `
         <li>
           <span class="meal-entry-name">${escapeAttr(label)}</span>
@@ -775,19 +784,6 @@ function removeMealEntry(type, index) {
   updateCalorieEstimate();
 }
 
-mealsGroup.addEventListener("change", (e) => {
-  const select = e.target.closest(".meal-select");
-  if (!select) return;
-  const itemId = select.value;
-  if (!itemId) return;
-  const type = select.dataset.mealType;
-  const profile = ensureProfileSeeded();
-  const item = profile.mealItems.find((i) => i.id === itemId);
-  select.value = "";
-  if (!item) return;
-  addMealEntry(type, { kcal: item.kcal ?? 0, mealItemId: item.id });
-});
-
 mealsGroup.addEventListener("click", (e) => {
   const removeBtn = e.target.closest(".meal-entry-remove");
   if (removeBtn) {
@@ -795,9 +791,27 @@ mealsGroup.addEventListener("click", (e) => {
     return;
   }
 
-  const addBtn = e.target.closest(".meal-custom-add");
-  if (addBtn) {
-    const type = addBtn.dataset.mealType;
+  const selectAddBtn = e.target.closest(".meal-select-add");
+  if (selectAddBtn) {
+    const type = selectAddBtn.dataset.mealType;
+    const select = mealSelectEls[type];
+    const itemId = select.value;
+    if (!itemId) return;
+    const profile = ensureProfileSeeded();
+    const item = profile.mealItems.find((i) => i.id === itemId);
+    if (!item) return;
+    const qtyInput = mealQtyEls[type];
+    const qty = getNumberOrNull(qtyInput) || 1;
+    const kcal = Math.round((item.kcal ?? 0) * qty);
+    select.value = "";
+    qtyInput.value = "1";
+    addMealEntry(type, { kcal, mealItemId: item.id, qty });
+    return;
+  }
+
+  const customAddBtn = e.target.closest(".meal-custom-add");
+  if (customAddBtn) {
+    const type = customAddBtn.dataset.mealType;
     const input = mealCustomInputEls[type];
     const kcal = getNumberOrNull(input);
     if (kcal === null) return;
@@ -814,6 +828,7 @@ function buildMealsFromForm() {
         mealType: mt.key,
         kcal: entry.kcal,
         ...(entry.mealItemId ? { mealItemId: entry.mealItemId } : {}),
+        ...(entry.qty && entry.qty !== 1 ? { qty: entry.qty } : {}),
         ...(entry.memo ? { memo: entry.memo } : {}),
       });
     }
@@ -829,12 +844,14 @@ function populateMealsForLog(existingMeals) {
       mealEntries[m.mealType].push({
         kcal: typeof m.kcal === "number" ? m.kcal : 0,
         ...(m.mealItemId ? { mealItemId: m.mealItemId } : {}),
+        ...(typeof m.qty === "number" && m.qty > 0 ? { qty: m.qty } : {}),
         ...(m.memo ? { memo: m.memo } : {}),
       });
     }
   }
   for (const mt of MEAL_TYPES) {
     mealCustomInputEls[mt.key].value = "";
+    mealQtyEls[mt.key].value = "1";
     renderMealEntryList(mt.key);
   }
 }
