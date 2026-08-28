@@ -87,38 +87,66 @@
 
       <fieldset class="group" id="meals-group">
         <legend>今日の食事(実績)</legend>
-        <p class="hint">kcalを直接入力するか、よく使うメニューから選ぶと自動入力されます(入力後の上書き可)。</p>
+        <p class="hint">よく使うメニューをプルダウンから選ぶと追加されます(複数選択可)。登録がないものはkcalを直接入力して追加できます。</p>
 
         <div class="meal-row" data-meal-type="breakfast">
           <div class="meal-row-header">
-            <label for="mealKcal-breakfast">朝食 (kcal)</label>
-            <input type="number" id="mealKcal-breakfast" class="meal-kcal" inputmode="numeric" step="1" min="0" placeholder="例: 450">
+            <span class="meal-row-label">朝食</span>
+            <span class="meal-row-total" id="mealTotal-breakfast">-</span>
           </div>
-          <div class="meal-quick-buttons" id="mealQuick-breakfast"></div>
+          <ul class="meal-entries-list" id="mealEntries-breakfast"></ul>
+          <select class="meal-select" id="mealSelect-breakfast" data-meal-type="breakfast">
+            <option value="">メニューから追加...</option>
+          </select>
+          <div class="meal-custom-row">
+            <input type="number" id="mealCustom-breakfast" class="meal-custom-kcal" inputmode="numeric" step="1" min="0" placeholder="kcalを直接入力">
+            <button type="button" class="secondary-btn meal-custom-add" data-meal-type="breakfast">追加</button>
+          </div>
         </div>
 
         <div class="meal-row" data-meal-type="lunch">
           <div class="meal-row-header">
-            <label for="mealKcal-lunch">昼食 (kcal)</label>
-            <input type="number" id="mealKcal-lunch" class="meal-kcal" inputmode="numeric" step="1" min="0" placeholder="例: 700">
+            <span class="meal-row-label">昼食</span>
+            <span class="meal-row-total" id="mealTotal-lunch">-</span>
           </div>
-          <div class="meal-quick-buttons" id="mealQuick-lunch"></div>
+          <ul class="meal-entries-list" id="mealEntries-lunch"></ul>
+          <select class="meal-select" id="mealSelect-lunch" data-meal-type="lunch">
+            <option value="">メニューから追加...</option>
+          </select>
+          <div class="meal-custom-row">
+            <input type="number" id="mealCustom-lunch" class="meal-custom-kcal" inputmode="numeric" step="1" min="0" placeholder="kcalを直接入力">
+            <button type="button" class="secondary-btn meal-custom-add" data-meal-type="lunch">追加</button>
+          </div>
         </div>
 
         <div class="meal-row" data-meal-type="dinner">
           <div class="meal-row-header">
-            <label for="mealKcal-dinner">夕食 (kcal)</label>
-            <input type="number" id="mealKcal-dinner" class="meal-kcal" inputmode="numeric" step="1" min="0" placeholder="例: 800">
+            <span class="meal-row-label">夕食</span>
+            <span class="meal-row-total" id="mealTotal-dinner">-</span>
           </div>
-          <div class="meal-quick-buttons" id="mealQuick-dinner"></div>
+          <ul class="meal-entries-list" id="mealEntries-dinner"></ul>
+          <select class="meal-select" id="mealSelect-dinner" data-meal-type="dinner">
+            <option value="">メニューから追加...</option>
+          </select>
+          <div class="meal-custom-row">
+            <input type="number" id="mealCustom-dinner" class="meal-custom-kcal" inputmode="numeric" step="1" min="0" placeholder="kcalを直接入力">
+            <button type="button" class="secondary-btn meal-custom-add" data-meal-type="dinner">追加</button>
+          </div>
         </div>
 
         <div class="meal-row" data-meal-type="snack">
           <div class="meal-row-header">
-            <label for="mealKcal-snack">間食 (kcal)</label>
-            <input type="number" id="mealKcal-snack" class="meal-kcal" inputmode="numeric" step="1" min="0" placeholder="例: 200">
+            <span class="meal-row-label">間食</span>
+            <span class="meal-row-total" id="mealTotal-snack">-</span>
           </div>
-          <div class="meal-quick-buttons" id="mealQuick-snack"></div>
+          <ul class="meal-entries-list" id="mealEntries-snack"></ul>
+          <select class="meal-select" id="mealSelect-snack" data-meal-type="snack">
+            <option value="">メニューから追加...</option>
+          </select>
+          <div class="meal-custom-row">
+            <input type="number" id="mealCustom-snack" class="meal-custom-kcal" inputmode="numeric" step="1" min="0" placeholder="kcalを直接入力">
+            <button type="button" class="secondary-btn meal-custom-add" data-meal-type="snack">追加</button>
+          </div>
         </div>
       </fieldset>
 
