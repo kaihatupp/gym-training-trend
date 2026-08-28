@@ -27,8 +27,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **フェーズ2(実装したが撤去済み)**: 筋トレ種目ごとの重量推移グラフ(Chart.js導入)、目標重量・レップ数の設定。
   - 目標重量・目標回数の設定機能自体は現在も残っている(プロフィール画面のマシンごとの入力欄)。
   - **グラフ機能(Chart.js・重量推移の折れ線グラフ)は実装後にユーザーが試用し「ピン式マシンの重量はほとんど動かないので折れ線グラフが役に立たない」とのフィードバックがあり撤去済み。** `lib/chart.umd.min.js`と`charts.js`は削除した。今後グラフを検討する際は、単純な重量推移ではなく「推定1RM」「トレーニングボリューム」など重量×回数を組み合わせた指標や、フェーズ4で採用した表形式の横断比較の方が有効な可能性が高い。
-- **フェーズ3(完了)**: 消費カロリーの概算表示(体重×METs値×時間の簡易計算)、摂取カロリー目安(Mifflin-St Jeor式によるBMR推定。維持/減量目安(-500kcal)/増量目安(+300kcal)の3値)。いずれも「一般的な計算式による概算であり医学的指導ではない」旨を明記している。
+- **フェーズ3(完了)**: 消費カロリーの概算表示(体重×METs値×時間の簡易計算)、摂取カロリー目安(Mifflin-St Jeor式によるBMR推定。維持/減量目安(-500kcal)/増量目安(+300kcal)の3値)、摂取カロリー実績の記録。いずれの概算値も「一般的な計算式による概算であり医学的指導ではない」旨を明記している。
   - 食事例の提示機能(当初「維持カロリー」基準→ユーザーの用途(減量)に合わせて「減量目安カロリー」基準に変更)も実装したが、ユーザー試用の結果不要と判断され**撤去済み(2026-08-28)**。`calorie.js`の`MEAL_EXAMPLES`/`pickMealExample`と、関連するUI(`#meal-example-block`)は削除した。
+  - 撤去した食事例の代わりに、**実際に食べた量を記録する「摂取カロリー実績」機能を追加(2026-08-28)**。朝食/昼食/夕食/間食ごとにkcalを直接入力するか、プロフィールに登録した「よく使うメニュー」からワンタップで選んで入力する。消費カロリー概算・摂取カロリー(実績)・摂取カロリー目安(減量)を並べて表示し、「あと◯◯kcalまでOK」/「◯◯kcalオーバー」がひと目でわかるようにしている。推移の表示が必要になった場合もフェーズ2の反省を踏まえグラフ化はせず、数値・表形式で対応する方針。
 - **フェーズ4(完了)**: 週次・月次サマリー、連続記録日数(ストリーク)、成長の横断比較ダッシュボード。グラフではなく数値・表形式で実装(フェーズ2の反省を踏まえた判断)。
 - フェーズ5以降(構想・未着手): VITALtrendとのデータ連携
 
@@ -76,32 +77,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 // MachineProfile: { id, name, currentWeightKg, defaultReps(=15), defaultSets(=3), active,
 //                    targetWeightKg, targetReps }              // フェーズ2で追加(任意)
 // CardioProfile:  { type('walk'|'run'), label, distanceKm, durationMin, incline, isRunWalkCombo }
+// MealItem:       { id, name, kcal }                            // フェーズ3で追加(「よく使うメニュー」、任意)
 // UserProfile: {
 //   machines: MachineProfile[],
 //   cardio: CardioProfile[],                                    // walk/runの基本設定(フェーズ3で追加)
-//   heightCm, weightKg, age, gender('male'|'female'|'unspecified'|null)  // 参考値・カロリー計算用(任意)
+//   heightCm, weightKg, age, gender('male'|'female'|'unspecified'|null),  // 参考値・カロリー計算用(任意)
+//   mealItems: MealItem[]                                       // よく使うメニュー登録(フェーズ3で追加)
 // }
 
 // 個別の記録: localStorage キー "gymWorkoutLogs"(日付ごとに1件、upsert)
 // StrengthLogEntry: { machineId, weightKg, reps, sets }
+// MealLogEntry:     { mealType('breakfast'|'lunch'|'dinner'|'snack'), kcal, mealItemId?, memo? }
 // WorkoutLog: {
 //   id, date(YYYY-MM-DD),
 //   bodyWeightKg,                         // その日の体重
 //   cardio: { type('walk'|'run'), distanceKm, durationMin, incline, isRunWalkCombo },
 //   strength: { entries: StrengthLogEntry[] },
 //   stretch: { durationMin },
+//   meals: MealLogEntry[],                // その日の摂取カロリー実績(フェーズ3で追加)
 //   memo, createdAt, updatedAt
 // }
 ```
 
-新しいプロフィール項目(cardio/heightCm/weightKg/age/gender/targetWeightKg/targetReps)は、既存の古い形式のプロフィールが読み込まれた際に`ensureProfileSeeded()`が後方互換で自動補完する(実機に既に保存されているデータを壊さないための対応)。
+新しいプロフィール項目(cardio/heightCm/weightKg/age/gender/targetWeightKg/targetReps/mealItems)は、既存の古い形式のプロフィールが読み込まれた際に`ensureProfileSeeded()`が後方互換で自動補完する(実機に既に保存されているデータを壊さないための対応)。同様に`meals`が無い古い形式のWorkoutLogも、無いものとして扱われるだけで壊れない。
 
 ## 画面構成(現状・4タブ構成)
 
-1. **今日の記録(ホーム)**: 曜日に応じたテンプレートを自動表示。体重、有酸素運動(距離・時間・傾斜有無、プロフィールの基本値を自動入力)、筋トレ(登録済みマシンから選択、重量はプロフィール値が自動入力・上書き可)、ストレッチ(月曜のみ)、推定カロリー(消費カロリー概算・摂取カロリー目安、入力に応じてリアルタイム再計算)を入力して保存。
+1. **今日の記録(ホーム)**: 曜日に応じたテンプレートを自動表示。体重、有酸素運動(距離・時間・傾斜有無、プロフィールの基本値を自動入力)、筋トレ(登録済みマシンから選択、重量はプロフィール値が自動入力・上書き可)、ストレッチ(月曜のみ)、今日の食事(朝食/昼食/夕食/間食ごとにkcalを直接入力、または登録済みの「よく使うメニュー」からワンタップで選択・上書き可)、推定カロリー(消費カロリー概算・摂取カロリー(実績)・摂取カロリー目安の3つを並べて表示し、減量目安まで「あと◯◯kcalまでOK」/「◯◯kcalオーバー」がひと目でわかる、入力に応じてリアルタイム再計算)を入力して保存。
 2. **記録一覧**: 日付順に過去の記録を一覧表示(14件超で「もっと見る」に折りたたみ)。タップして詳細確認・編集・削除。下部にバックアップ(エクスポート/インポート、記録+プロフィールをまとめてJSON化)。
 3. **サマリー**: 連続記録日数(現在/自己ベスト)、週次・月次サマリー(前へ/次へで期間移動)、成長の横断比較(マシンごとの初回→最新の重量・回数比較表)。
-4. **プロフィール**: 基本情報(身長・体重・年齢・性別、任意)、有酸素運動の基本設定(ウォーキング/ランニングの距離・時間・傾斜)、筋トレマシンの登録・編集・削除(目標重量・目標回数と参考値表示つき)。
+4. **プロフィール**: 基本情報(身長・体重・年齢・性別、任意)、有酸素運動の基本設定(ウォーキング/ランニングの距離・時間・傾斜)、筋トレマシンの登録・編集・削除(目標重量・目標回数と参考値表示つき)、よく使うメニューの登録・編集・削除(名前・kcal)。
 
 ## ファイル構成(実装済み)
 
@@ -112,7 +117,7 @@ gym-training-trend-app-dev/
 ├── style.css              # スタイル
 ├── app.js                  # 入力フォーム・保存処理・プロフィール管理・タブ切り替え
 ├── templates.js            # 曜日ごとのテンプレート定義(タイプ・表示可否のみ、数値はプロフィール参照)
-├── calorie.js               # 消費/摂取カロリー概算(フェーズ3)
+├── calorie.js               # 消費/摂取カロリー概算・摂取カロリー実績の集計(フェーズ3)
 ├── summary.js               # 連続記録日数・週次月次サマリー・成長比較(フェーズ4)
 ├── backup.js                # エクスポート/インポート(記録+プロフィール)
 ├── manifest.json           # PWA設定(アプリ名・アイコン)

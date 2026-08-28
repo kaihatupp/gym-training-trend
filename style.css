@@ -241,6 +241,55 @@ textarea {
   font-size: 0.85rem;
 }
 
+/* 今日の食事(摂取カロリー実績) */
+
+.meal-row {
+  border-top: 1px solid #eee;
+  padding: 12px 0;
+}
+
+.meal-row:first-child {
+  border-top: none;
+}
+
+.meal-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.meal-row-header label {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.meal-row-header input {
+  max-width: 8em;
+}
+
+.meal-quick-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meal-quick-btn {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #2f5d7d;
+  background: #eaf1f6;
+  border: 1px solid #cddde6;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.meal-quick-btn:active {
+  background: #d9e7f0;
+}
+
 /* 推定カロリー(今日の記録) */
 
 .calorie-line {
@@ -265,6 +314,14 @@ textarea {
   color: #2f5d7d;
 }
 
+.calorie-value.calorie-ok {
+  color: #2e7d4f;
+}
+
+.calorie-value.calorie-over {
+  color: #c0392b;
+}
+
 #calorie-profile-hint {
   margin: 8px 0 0;
 }
@@ -273,7 +330,8 @@ textarea {
 
 #records-list,
 #machines-list,
-#cardio-list {
+#cardio-list,
+#meal-items-list {
   list-style: none;
   margin: 0 0 16px;
   padding: 0;
@@ -281,7 +339,8 @@ textarea {
 
 #records-list li,
 #machines-list li,
-#cardio-list li {
+#cardio-list li,
+#meal-items-list li {
   background: #fff;
   border-radius: 8px;
   padding: 12px;
@@ -540,13 +599,21 @@ textarea {
   margin: 0;
 }
 
+.list-item-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
 #machines-list .field,
-#cardio-list .field {
+#cardio-list .field,
+#meal-items-list .field {
   margin-bottom: 10px;
 }
 
 #machines-list .field label,
-#cardio-list .field label {
+#cardio-list .field label,
+#meal-items-list .field label {
   font-size: 0.75rem;
   margin-bottom: 4px;
 }
