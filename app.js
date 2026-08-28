@@ -930,7 +930,7 @@ function updateCalorieEstimate() {
   calorieIntakeActualEl.textContent = intakeActual !== null ? `${intakeActual} kcal` : "-";
 
   const profile = ensureProfileSeeded();
-  const targets = estimateCalorieTargets(profile, exerciseKcal);
+  const targets = estimateCalorieTargets(profile);
 
   if (!targets) {
     calorieIntakeBlock.hidden = true;
@@ -950,7 +950,9 @@ function updateCalorieEstimate() {
     return;
   }
   calorieRemainingLine.hidden = false;
-  const diff = targets.loss - intakeActual;
+  // 減量目安 + 本日の運動による消費カロリー - 摂取カロリー(実績)。
+  // 運動した分だけ、その日食べられる量が増える形にする。
+  const diff = targets.loss + (exerciseKcal || 0) - intakeActual;
   calorieRemainingEl.classList.toggle("calorie-ok", diff >= 0);
   calorieRemainingEl.classList.toggle("calorie-over", diff < 0);
   calorieRemainingEl.textContent = diff >= 0 ? `あと${diff}kcalまでOK` : `${Math.abs(diff)}kcalオーバー`;

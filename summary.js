@@ -88,6 +88,8 @@ function aggregatePeriod(start, end) {
   let weightSum = 0;
   let weightCount = 0;
   let totalKcal = 0;
+  let totalIntakeKcal = 0;
+  let hasIntakeData = false;
 
   for (const log of logs) {
     if (log.cardio && log.cardio.durationMin) {
@@ -112,6 +114,12 @@ function aggregatePeriod(start, end) {
     const weight = log.bodyWeightKg !== null && log.bodyWeightKg !== undefined ? log.bodyWeightKg : getReferenceBodyWeightKg();
     const kcal = estimateExerciseKcal(log, weight);
     if (kcal !== null) totalKcal += kcal;
+
+    const intakeKcal = sumMealsKcal(log.meals);
+    if (intakeKcal !== null) {
+      totalIntakeKcal += intakeKcal;
+      hasIntakeData = true;
+    }
   }
 
   return {
@@ -125,6 +133,7 @@ function aggregatePeriod(start, end) {
     totalStretchMin,
     avgBodyWeightKg: weightCount > 0 ? Math.round((weightSum / weightCount) * 10) / 10 : null,
     totalKcal: Math.round(totalKcal),
+    totalIntakeKcal: hasIntakeData ? Math.round(totalIntakeKcal) : null,
   };
 }
 
@@ -170,30 +179,40 @@ function renderPeriodSummary() {
   document.getElementById("summary-next").disabled = summaryOffset >= 0;
 
   const stats = aggregatePeriod(start, end);
-  const list = document.getElementById("summary-stats");
+  const trainingList = document.getElementById("summary-training-stats");
+  const calorieList = document.getElementById("summary-calorie-stats");
   const emptyEl = document.getElementById("summary-empty");
 
   if (stats.daysLogged === 0) {
-    list.innerHTML = "";
-    list.hidden = true;
+    trainingList.innerHTML = "";
+    calorieList.innerHTML = "";
+    trainingList.hidden = true;
+    calorieList.hidden = true;
     emptyEl.hidden = false;
     return;
   }
-  list.hidden = false;
+  trainingList.hidden = false;
+  calorieList.hidden = false;
   emptyEl.hidden = true;
 
-  const rows = [
+  const trainingRows = [
     ["記録日数", `${stats.daysLogged}日`],
     ["有酸素運動", `${stats.cardioDays}日 / 合計${stats.totalDistanceKm}km・${stats.totalCardioMin}分`],
     ["筋トレ", `${stats.strengthDays}日 / 延べ${stats.totalSets}セット`],
     ["ストレッチ", `${stats.stretchDays}日 / 合計${stats.totalStretchMin}分`],
-    ["平均体重", stats.avgBodyWeightKg !== null ? `${stats.avgBodyWeightKg}kg` : "-"],
-    ["消費カロリー概算(合計)", `約${stats.totalKcal}kcal`],
   ];
 
-  list.innerHTML = rows
-    .map(([label, value]) => `<li><span class="summary-label">${label}</span><span class="summary-value">${value}</span></li>`)
-    .join("");
+  const calorieRows = [
+    ["平均体重", stats.avgBodyWeightKg !== null ? `${stats.avgBodyWeightKg}kg` : "-"],
+    ["消費カロリー合計", `約${stats.totalKcal}kcal`],
+    ["摂取カロリー合計", stats.totalIntakeKcal !== null ? `約${stats.totalIntakeKcal}kcal` : "-"],
+  ];
+
+  const renderRows = (rows) =>
+    rows.map(([label, value]) => `<li><span class="summary-label">${label}</span><span class="summary-value">${value}</span></li>`).join("");
+
+  trainingList.innerHTML = renderRows(trainingRows);
+  calorieList.innerHTML = renderRows(calorieRows);
 }
 
 function renderProgressTable() {

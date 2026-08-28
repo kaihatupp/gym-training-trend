@@ -197,7 +197,7 @@
         <p id="calorie-profile-hint" class="hint" hidden>プロフィール画面で身長・体重・年齢を入力すると摂取カロリー目安が表示されます。</p>
 
         <div class="calorie-line" id="calorie-remaining-line" hidden>
-          <span class="calorie-label">減量目安まで</span>
+          <span class="calorie-label">減量目安まで(運動分を加味)</span>
           <span id="calorie-remaining" class="calorie-value">-</span>
         </div>
       </fieldset>
@@ -252,7 +252,12 @@
       <span id="summary-range-label" class="range-label"></span>
       <button type="button" id="summary-next" class="nav-btn">次へ ▶</button>
     </div>
-    <ul class="summary-list" id="summary-stats"></ul>
+    <h3>トレーニング記録</h3>
+    <ul class="summary-list" id="summary-training-stats"></ul>
+
+    <h3>カロリーサマリー</h3>
+    <ul class="summary-list" id="summary-calorie-stats"></ul>
+
     <p id="summary-empty" class="empty" hidden>この期間の記録がありません</p>
 
     <h2>成長の横断比較</h2>
