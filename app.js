@@ -495,7 +495,7 @@ mealItemsList.addEventListener("change", (e) => {
   }
   saveProfile(profile);
   renderMealItemsList();
-  renderMealQuickButtons();
+  renderMealSelects();
 });
 
 mealItemsList.addEventListener("click", (e) => {
@@ -510,7 +510,7 @@ mealItemsList.addEventListener("click", (e) => {
   profile.mealItems = profile.mealItems.filter((i) => i.id !== li.dataset.id);
   saveProfile(profile);
   renderMealItemsList();
-  renderMealQuickButtons();
+  renderMealSelects();
 });
 
 mealItemForm.addEventListener("submit", (e) => {
@@ -534,7 +534,7 @@ mealItemForm.addEventListener("submit", (e) => {
 
   mealItemForm.reset();
   renderMealItemsList();
-  renderMealQuickButtons();
+  renderMealSelects();
 });
 
 // ---------- 基本情報(身長・体重・年齢) ----------
@@ -709,73 +709,133 @@ function renderStrengthMachines(existingEntries) {
 }
 
 // ---------- 今日の食事(摂取カロリー実績) ----------
+//
+// 1食につき複数のメニューを積み上げて合計する(例: 昼食=お弁当550kcal + ゆで卵120kcal)。
+// mealEntries[type] は { kcal, mealItemId? , memo? } の配列で、フォーム上の状態を保持する。
 
-const mealKcalInputs = {};
-const mealQuickContainers = {};
+const mealSelectEls = {};
+const mealEntriesListEls = {};
+const mealTotalEls = {};
+const mealCustomInputEls = {};
 for (const mt of MEAL_TYPES) {
-  mealKcalInputs[mt.key] = document.getElementById(`mealKcal-${mt.key}`);
-  mealQuickContainers[mt.key] = document.getElementById(`mealQuick-${mt.key}`);
+  mealSelectEls[mt.key] = document.getElementById(`mealSelect-${mt.key}`);
+  mealEntriesListEls[mt.key] = document.getElementById(`mealEntries-${mt.key}`);
+  mealTotalEls[mt.key] = document.getElementById(`mealTotal-${mt.key}`);
+  mealCustomInputEls[mt.key] = document.getElementById(`mealCustom-${mt.key}`);
 }
 const mealsGroup = document.getElementById("meals-group");
-let selectedMealItemId = {};
 
-function renderMealQuickButtons() {
+let mealEntries = { breakfast: [], lunch: [], dinner: [], snack: [] };
+
+function renderMealSelects() {
   const profile = ensureProfileSeeded();
+  const options = profile.mealItems
+    .map((item) => `<option value="${item.id}">${escapeAttr(item.name)}(${item.kcal ?? "-"}kcal)</option>`)
+    .join("");
   for (const mt of MEAL_TYPES) {
-    const container = mealQuickContainers[mt.key];
-    container.innerHTML = profile.mealItems
-      .map(
-        (item) =>
-          `<button type="button" class="meal-quick-btn" data-meal-type="${mt.key}" data-item-id="${item.id}">${escapeAttr(item.name)}(${item.kcal ?? "-"}kcal)</button>`
-      )
-      .join("");
+    mealSelectEls[mt.key].innerHTML = `<option value="">メニューから追加...</option>${options}`;
   }
 }
 
-mealsGroup.addEventListener("click", (e) => {
-  const btn = e.target.closest(".meal-quick-btn");
-  if (!btn) return;
-  const type = btn.dataset.mealType;
+function renderMealEntryList(type) {
   const profile = ensureProfileSeeded();
-  const item = profile.mealItems.find((i) => i.id === btn.dataset.itemId);
+  const entries = mealEntries[type];
+
+  mealEntriesListEls[type].innerHTML = entries
+    .map((entry, index) => {
+      const item = entry.mealItemId ? profile.mealItems.find((i) => i.id === entry.mealItemId) : null;
+      const label = entry.mealItemId ? (item ? item.name : "(削除済みメニュー)") : "手入力";
+      return `
+        <li>
+          <span class="meal-entry-name">${escapeAttr(label)}</span>
+          <span class="meal-entry-kcal">${entry.kcal}kcal</span>
+          <button type="button" class="meal-entry-remove" data-meal-type="${type}" data-index="${index}">×</button>
+        </li>
+      `;
+    })
+    .join("");
+
+  if (entries.length === 0) {
+    mealTotalEls[type].textContent = "-";
+    return;
+  }
+  const total = entries.reduce((sum, e) => sum + (e.kcal || 0), 0);
+  mealTotalEls[type].textContent = `${total} kcal`;
+}
+
+function addMealEntry(type, entry) {
+  mealEntries[type].push(entry);
+  renderMealEntryList(type);
+  updateCalorieEstimate();
+}
+
+function removeMealEntry(type, index) {
+  mealEntries[type].splice(index, 1);
+  renderMealEntryList(type);
+  updateCalorieEstimate();
+}
+
+mealsGroup.addEventListener("change", (e) => {
+  const select = e.target.closest(".meal-select");
+  if (!select) return;
+  const itemId = select.value;
+  if (!itemId) return;
+  const type = select.dataset.mealType;
+  const profile = ensureProfileSeeded();
+  const item = profile.mealItems.find((i) => i.id === itemId);
+  select.value = "";
   if (!item) return;
-  mealKcalInputs[type].value = item.kcal ?? "";
-  selectedMealItemId[type] = item.id;
-  mealKcalInputs[type].dispatchEvent(new Event("input", { bubbles: true }));
+  addMealEntry(type, { kcal: item.kcal ?? 0, mealItemId: item.id });
 });
 
-// 入力中のkcalが、選択済みのメニューの値のままなら mealItemId を記録として残す
-// (手入力で上書きされた場合はメニューとの紐付けを外す)
-function getMealItemIdIfMatches(type) {
-  const id = selectedMealItemId[type];
-  if (!id) return null;
-  const profile = ensureProfileSeeded();
-  const item = profile.mealItems.find((i) => i.id === id);
-  const val = getNumberOrNull(mealKcalInputs[type]);
-  return item && item.kcal === val ? id : null;
-}
+mealsGroup.addEventListener("click", (e) => {
+  const removeBtn = e.target.closest(".meal-entry-remove");
+  if (removeBtn) {
+    removeMealEntry(removeBtn.dataset.mealType, Number(removeBtn.dataset.index));
+    return;
+  }
+
+  const addBtn = e.target.closest(".meal-custom-add");
+  if (addBtn) {
+    const type = addBtn.dataset.mealType;
+    const input = mealCustomInputEls[type];
+    const kcal = getNumberOrNull(input);
+    if (kcal === null) return;
+    input.value = "";
+    addMealEntry(type, { kcal, memo: "手入力" });
+  }
+});
 
 function buildMealsFromForm() {
   const meals = [];
   for (const mt of MEAL_TYPES) {
-    const kcal = getNumberOrNull(mealKcalInputs[mt.key]);
-    if (kcal === null) continue;
-    const mealItemId = getMealItemIdIfMatches(mt.key);
-    meals.push(mealItemId ? { mealType: mt.key, kcal, mealItemId } : { mealType: mt.key, kcal });
+    for (const entry of mealEntries[mt.key]) {
+      meals.push({
+        mealType: mt.key,
+        kcal: entry.kcal,
+        ...(entry.mealItemId ? { mealItemId: entry.mealItemId } : {}),
+        ...(entry.memo ? { memo: entry.memo } : {}),
+      });
+    }
   }
   return meals;
 }
 
 function populateMealsForLog(existingMeals) {
-  selectedMealItemId = {};
-  const byType = {};
+  mealEntries = { breakfast: [], lunch: [], dinner: [], snack: [] };
   if (existingMeals) {
-    for (const m of existingMeals) byType[m.mealType] = m;
+    for (const m of existingMeals) {
+      if (!mealEntries[m.mealType]) continue;
+      mealEntries[m.mealType].push({
+        kcal: typeof m.kcal === "number" ? m.kcal : 0,
+        ...(m.mealItemId ? { mealItemId: m.mealItemId } : {}),
+        ...(m.memo ? { memo: m.memo } : {}),
+      });
+    }
   }
   for (const mt of MEAL_TYPES) {
-    const entry = byType[mt.key];
-    mealKcalInputs[mt.key].value = entry && entry.kcal !== null && entry.kcal !== undefined ? entry.kcal : "";
-    if (entry && entry.mealItemId) selectedMealItemId[mt.key] = entry.mealItemId;
+    mealCustomInputEls[mt.key].value = "";
+    renderMealEntryList(mt.key);
   }
 }
 
@@ -808,7 +868,7 @@ function populateFormForDate(date) {
     populateMealsForLog(null);
   }
 
-  renderMealQuickButtons();
+  renderMealSelects();
   stretchGroup.hidden = !isMonday(date);
   updateCalorieEstimate();
 }
