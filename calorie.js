@@ -76,12 +76,14 @@ function estimateBMR(profile) {
   return base - 78; // 性別未回答時は男女の中間値
 }
 
-// 摂取カロリー目安 = 基礎代謝×1.2(生活活動分) + その日の運動による消費カロリー
-function estimateCalorieTargets(profile, exerciseKcal) {
+// 摂取カロリー目安 = 基礎代謝×1.2(生活活動分)。日々の運動による消費カロリーは
+// ここには含めず、「あと何kcalまでOK」の計算側で別途上乗せする(目安の値自体は
+// その日の運動量に関わらず一定にしておき、運動分の影響を分かりやすくするため)。
+function estimateCalorieTargets(profile) {
   const bmr = estimateBMR(profile);
   if (bmr === null) return null;
 
-  const maintenance = Math.round(bmr * 1.2 + (exerciseKcal || 0));
+  const maintenance = Math.round(bmr * 1.2);
   return {
     maintenance,
     loss: maintenance - 500,

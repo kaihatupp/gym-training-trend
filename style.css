@@ -644,7 +644,8 @@ textarea {
 /* プロフィール画面 */
 
 #view-profile h2,
-#view-profile h3 {
+#view-profile h3,
+#view-summary h3 {
   font-size: 1rem;
   color: #444;
   margin: 20px 0 4px;
