@@ -235,8 +235,7 @@ function renderProgressTable() {
   const table = document.getElementById("progress-table");
   const emptyEl = document.getElementById("progress-empty");
 
-  const rowsWithData = progress.filter((p) => p.first);
-  if (rowsWithData.length === 0) {
+  if (progress.length === 0) {
     table.hidden = true;
     emptyEl.hidden = false;
     return;
@@ -244,8 +243,16 @@ function renderProgressTable() {
   table.hidden = false;
   emptyEl.hidden = true;
 
-  tbody.innerHTML = rowsWithData
+  tbody.innerHTML = progress
     .map(({ machine, first, last }) => {
+      if (!first) {
+        return `
+          <tr>
+            <td>${escapeAttr(machine.name)}</td>
+            <td colspan="3">記録なし(このマシンで重量を入力して保存すると表示されます)</td>
+          </tr>
+        `;
+      }
       const sameEntry = first.date === last.date;
       let deltaText = "記録1件のみ";
       if (!sameEntry) {
