@@ -651,6 +651,7 @@ const durationMinInput = document.getElementById("durationMin");
 const inclineInput = document.getElementById("incline");
 const isRunWalkComboInput = document.getElementById("isRunWalkCombo");
 const stretchGroup = document.getElementById("stretch-group");
+const stretchDoneInput = document.getElementById("stretchDone");
 const stretchDurationInput = document.getElementById("stretchDuration");
 const memoInput = document.getElementById("memo");
 const strengthMachinesEl = document.getElementById("strength-machines");
@@ -914,6 +915,7 @@ function populateFormForDate(date) {
     durationMinInput.value = existing.cardio.durationMin ?? "";
     inclineInput.checked = Boolean(existing.cardio.incline);
     isRunWalkComboInput.checked = Boolean(existing.cardio.isRunWalkCombo);
+    stretchDoneInput.checked = Boolean(existing.stretch && existing.stretch.durationMin);
     stretchDurationInput.value = existing.stretch && existing.stretch.durationMin !== null ? existing.stretch.durationMin : "";
     memoInput.value = existing.memo || "";
     renderStrengthMachines(existing.strength ? existing.strength.entries : []);
@@ -926,6 +928,7 @@ function populateFormForDate(date) {
     durationMinInput.value = cardioDefaults.durationMin ?? "";
     inclineInput.checked = Boolean(cardioDefaults.incline);
     isRunWalkComboInput.checked = Boolean(cardioDefaults.isRunWalkCombo);
+    stretchDoneInput.checked = templ.showStretch;
     stretchDurationInput.value = templ.showStretch ? templ.stretchDurationMin : "";
     memoInput.value = "";
     renderStrengthMachines(null);
@@ -965,7 +968,7 @@ function buildDraftFromForm() {
       incline: inclineInput.checked,
     },
     strength: { entries: strengthEntries },
-    stretch: { durationMin: getNumberOrNull(stretchDurationInput) },
+    stretch: { durationMin: stretchDoneInput.checked ? getNumberOrNull(stretchDurationInput) : null },
   };
 }
 
@@ -1063,7 +1066,7 @@ form.addEventListener("submit", (e) => {
       isRunWalkCombo: isRunWalkComboInput.checked,
     },
     strength: { entries: strengthEntries },
-    stretch: { durationMin: getNumberOrNull(stretchDurationInput) },
+    stretch: { durationMin: stretchDoneInput.checked ? getNumberOrNull(stretchDurationInput) : null },
     meals: buildMealsFromForm(),
     memo: memoInput.value.trim(),
     createdAt: now,
