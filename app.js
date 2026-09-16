@@ -706,6 +706,13 @@ function getCardioType() {
   return checked ? checked.value : "run";
 }
 
+function getPreviousStrengthEntries(beforeDate) {
+  const logs = loadLogs()
+    .filter((l) => l.date < beforeDate && l.strength && l.strength.entries && l.strength.entries.length > 0)
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
+  return logs.length > 0 ? logs[0].strength.entries : null;
+}
+
 function renderStrengthMachines(existingEntries) {
   const machines = getActiveMachines();
   strengthMachinesEl.innerHTML = "";
@@ -719,11 +726,22 @@ function renderStrengthMachines(existingEntries) {
   }
 
   const templ = getTemplateForDate(dateInput.value);
-  const defaultChecked = !existingEntries && templ.showStrength;
+  const isNewLog = !existingEntries;
+
+  // 平日(ストレッチ日=月曜以外)は、前回記録した日にチェックしていたマシンをそのまま引き継ぐ。
+  // 新しく登録したマシンはこの引き継ぎ対象に含まれないため、その日は手動でチェックする。
+  let carryForwardIds = null;
+  if (isNewLog && templ.showStrength) {
+    const prevEntries = getPreviousStrengthEntries(dateInput.value);
+    if (prevEntries) {
+      carryForwardIds = new Set(prevEntries.map((e) => e.machineId));
+    }
+  }
+  const defaultChecked = isNewLog && templ.showStrength && !carryForwardIds;
 
   for (const m of machines) {
     const entry = entriesById[m.id];
-    const checked = existingEntries ? Boolean(entry) : defaultChecked;
+    const checked = existingEntries ? Boolean(entry) : carryForwardIds ? carryForwardIds.has(m.id) : defaultChecked;
     const weight = entry ? entry.weightKg : m.currentWeightKg;
     const reps = entry ? entry.reps : m.defaultReps;
     const sets = entry ? entry.sets : m.defaultSets;
@@ -895,6 +913,13 @@ function populateMealsForLog(existingMeals) {
         ...(typeof m.qty === "number" && m.qty > 0 ? { qty: m.qty } : {}),
         ...(m.memo ? { memo: m.memo } : {}),
       });
+    }
+  } else {
+    // まだ記録がない日は、間食に「プロテイン」を毎日自動でセットする(よく使うメニューに登録済みの場合のみ)。
+    const profile = ensureProfileSeeded();
+    const protein = profile.mealItems.find((i) => i.name === "プロテイン");
+    if (protein) {
+      mealEntries.snack.push({ kcal: protein.kcal ?? 0, mealItemId: protein.id, qty: 1 });
     }
   }
   for (const mt of MEAL_TYPES) {
