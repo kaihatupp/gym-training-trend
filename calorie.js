@@ -36,7 +36,16 @@ function metsToKcal(mets, weightKg, minutes) {
   return mets * weightKg * (minutes / 60) * 1.05;
 }
 
-// draft: { cardio: {type, durationMin, incline}, strength: {entries}, stretch: {durationMin} }
+// スクワット(自重・食後20分以内・20回×朝昼晩)の消費カロリー概算。
+// 他の運動と別式なのは、1セット=1分程度という短時間の運動を簡易式で見積もるため
+// (指示書の指定式: MET × 3.5 × 体重(kg) ÷ 200 × 所要時間(分))。
+const SQUAT_MET = 5.0;
+const SQUAT_DURATION_MIN_PER_SET = 1; // 20回×3秒/回 ≒ 1分
+function squatKcalPerSet(weightKg) {
+  return (SQUAT_MET * 3.5 * weightKg) / 200 * SQUAT_DURATION_MIN_PER_SET;
+}
+
+// draft: { cardio: {type, durationMin, incline}, strength: {entries}, stretch: {durationMin}, squat?: {morning, noon, evening} }
 function estimateExerciseKcal(draft, weightKg) {
   if (!weightKg || weightKg <= 0) return null;
   let kcal = 0;
@@ -60,6 +69,15 @@ function estimateExerciseKcal(draft, weightKg) {
   if (stretch && stretch.durationMin) {
     kcal += metsToKcal(METS.stretch, weightKg, stretch.durationMin);
     hasAny = true;
+  }
+
+  const squat = draft.squat;
+  if (squat) {
+    const setCount = [squat.morning, squat.noon, squat.evening].filter(Boolean).length;
+    if (setCount > 0) {
+      kcal += squatKcalPerSet(weightKg) * setCount;
+      hasAny = true;
+    }
   }
 
   return hasAny ? Math.round(kcal) : null;

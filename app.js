@@ -58,6 +58,7 @@ function ensureProfileSeeded() {
       age: null,
       gender: null,
       mealItems: [],
+      squatSettings: { repsPerSet: 20, weightKg: null },
     };
     changed = true;
   } else {
@@ -84,6 +85,10 @@ function ensureProfileSeeded() {
     }
     if (!Array.isArray(profile.mealItems)) {
       profile.mealItems = [];
+      changed = true;
+    }
+    if (!profile.squatSettings || typeof profile.squatSettings !== "object") {
+      profile.squatSettings = { repsPerSet: 20, weightKg: null };
       changed = true;
     }
     for (const m of profile.machines) {
@@ -303,6 +308,7 @@ function showView(name) {
   } else if (name === "profile") {
     renderBasicInfo();
     renderCardioList();
+    renderSquatProfileCard();
     renderMachinesList();
     renderMealItemsList();
   }
@@ -312,6 +318,19 @@ function showView(name) {
 
 const machinesList = document.getElementById("machines-list");
 const machineForm = document.getElementById("machine-form");
+const squatRepsPerSetInput = document.getElementById("squatRepsPerSet");
+
+function renderSquatProfileCard() {
+  const profile = ensureProfileSeeded();
+  squatRepsPerSetInput.value = profile.squatSettings.repsPerSet ?? 20;
+}
+
+squatRepsPerSetInput.addEventListener("change", () => {
+  const profile = ensureProfileSeeded();
+  profile.squatSettings.repsPerSet = getNumberOrNull(squatRepsPerSetInput) || 20;
+  saveProfile(profile);
+  renderSquatProfileCard();
+});
 
 function renderMachinesList() {
   const profile = ensureProfileSeeded();
@@ -656,6 +675,9 @@ const stretchDurationInput = document.getElementById("stretchDuration");
 const memoInput = document.getElementById("memo");
 const strengthMachinesEl = document.getElementById("strength-machines");
 const strengthEmptyEl = document.getElementById("strength-empty");
+const squatMorningInput = document.getElementById("squatMorning");
+const squatNoonInput = document.getElementById("squatNoon");
+const squatEveningInput = document.getElementById("squatEvening");
 
 attachAutoDecimalInput(bodyWeightInput);
 
@@ -944,6 +966,9 @@ function populateFormForDate(date) {
     stretchDurationInput.value = existing.stretch && existing.stretch.durationMin !== null ? existing.stretch.durationMin : "";
     memoInput.value = existing.memo || "";
     renderStrengthMachines(existing.strength ? existing.strength.entries : []);
+    squatMorningInput.checked = existing.squat ? Boolean(existing.squat.morning) : true;
+    squatNoonInput.checked = existing.squat ? Boolean(existing.squat.noon) : true;
+    squatEveningInput.checked = existing.squat ? Boolean(existing.squat.evening) : true;
     populateMealsForLog(existing.meals);
   } else {
     const cardioDefaults = getCardioProfile(templ.cardioType);
@@ -957,6 +982,9 @@ function populateFormForDate(date) {
     stretchDurationInput.value = templ.showStretch ? templ.stretchDurationMin : "";
     memoInput.value = "";
     renderStrengthMachines(null);
+    squatMorningInput.checked = true;
+    squatNoonInput.checked = true;
+    squatEveningInput.checked = true;
     populateMealsForLog(null);
   }
 
@@ -994,6 +1022,7 @@ function buildDraftFromForm() {
     },
     strength: { entries: strengthEntries },
     stretch: { durationMin: stretchDoneInput.checked ? getNumberOrNull(stretchDurationInput) : null },
+    squat: { morning: squatMorningInput.checked, noon: squatNoonInput.checked, evening: squatEveningInput.checked },
   };
 }
 
@@ -1092,6 +1121,7 @@ form.addEventListener("submit", (e) => {
     },
     strength: { entries: strengthEntries },
     stretch: { durationMin: stretchDoneInput.checked ? getNumberOrNull(stretchDurationInput) : null },
+    squat: { morning: squatMorningInput.checked, noon: squatNoonInput.checked, evening: squatEveningInput.checked },
     meals: buildMealsFromForm(),
     memo: memoInput.value.trim(),
     createdAt: now,
@@ -1144,6 +1174,13 @@ function summarizeLog(log) {
   }
   if (log.stretch && log.stretch.durationMin) {
     parts.push(`ストレッチ ${log.stretch.durationMin}分`);
+  }
+  if (log.squat && (log.squat.morning || log.squat.noon || log.squat.evening)) {
+    const doneLabels = [];
+    if (log.squat.morning) doneLabels.push("朝");
+    if (log.squat.noon) doneLabels.push("昼");
+    if (log.squat.evening) doneLabels.push("晩");
+    parts.push(`スクワット: ${doneLabels.join("・")}`);
   }
 
   const weight = log.bodyWeightKg !== null && log.bodyWeightKg !== undefined ? log.bodyWeightKg : getReferenceBodyWeightKg();

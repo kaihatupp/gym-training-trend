@@ -39,6 +39,7 @@ function sanitizeImportedLog(l) {
   const strength = l.strength && typeof l.strength === "object" ? l.strength : {};
   const entries = Array.isArray(strength.entries) ? strength.entries : [];
   const stretch = l.stretch && typeof l.stretch === "object" ? l.stretch : {};
+  const squat = l.squat && typeof l.squat === "object" ? l.squat : null;
   const meals = Array.isArray(l.meals) ? l.meals : [];
   const mealTypes = ["breakfast", "lunch", "dinner", "snack"];
 
@@ -64,6 +65,9 @@ function sanitizeImportedLog(l) {
         })),
     },
     stretch: { durationMin: num(stretch.durationMin) },
+    ...(squat
+      ? { squat: { morning: Boolean(squat.morning), noon: Boolean(squat.noon), evening: Boolean(squat.evening) } }
+      : {}),
     meals: meals
       .filter((m) => m && typeof m.mealType === "string" && mealTypes.includes(m.mealType))
       .map((m) => ({

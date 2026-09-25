@@ -243,6 +243,40 @@ textarea {
   font-size: 0.85rem;
 }
 
+/* スクワット(今日の記録・固定表示) */
+
+.squat-row {
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.squat-row-label {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.squat-checks {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* スクワット(プロフィール・固定カード) */
+
+.squat-profile-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  background: #fafafa;
+}
+
+.squat-profile-name {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
 /* 今日の食事(摂取カロリー実績) */
 
 .meal-row {

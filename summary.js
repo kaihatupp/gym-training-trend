@@ -170,6 +170,55 @@ function getMachineProgress() {
     });
 }
 
+// ---------- スクワット実施状況 ----------
+
+function isSquatDone(log) {
+  return Boolean(log && log.squat && (log.squat.morning || log.squat.noon || log.squat.evening));
+}
+
+function computeSquatAchievement(start, end) {
+  const logs = loadLogs().filter((l) => l.date >= start && l.date <= end);
+  let done = 0;
+  for (const log of logs) {
+    if (!log.squat) continue;
+    if (log.squat.morning) done++;
+    if (log.squat.noon) done++;
+    if (log.squat.evening) done++;
+  }
+  return done;
+}
+
+function computeSquatStreak() {
+  const logs = loadLogs();
+  const byDate = {};
+  for (const l of logs) byDate[l.date] = l;
+
+  let current = 0;
+  let cursor = todayString();
+  if (!isSquatDone(byDate[cursor])) {
+    cursor = addDays(cursor, -1);
+  }
+  while (isSquatDone(byDate[cursor])) {
+    current++;
+    cursor = addDays(cursor, -1);
+  }
+  return current;
+}
+
+function getSquatStats() {
+  const week = getWeekRange(0);
+  const month = getMonthRange(0);
+  const daysInMonth = toDateObj(month.end).getDate();
+
+  return {
+    weekDone: computeSquatAchievement(week.start, week.end),
+    weekTotal: 3 * 7,
+    monthDone: computeSquatAchievement(month.start, month.end),
+    monthTotal: 3 * daysInMonth,
+    streak: computeSquatStreak(),
+  };
+}
+
 // ---------- 画面描画 ----------
 
 let summaryPeriodType = "week";
@@ -274,11 +323,25 @@ function renderProgressTable() {
     .join("");
 }
 
+function renderSquatStats() {
+  const stats = getSquatStats();
+  const list = document.getElementById("squat-stats");
+  const rows = [
+    ["今週の達成率", `${stats.weekDone}/${stats.weekTotal}回`],
+    ["今月の達成率", `${stats.monthDone}/${stats.monthTotal}回`],
+    ["連続達成日数", `${stats.streak}日`],
+  ];
+  list.innerHTML = rows
+    .map(([label, value]) => `<li><span class="summary-label">${label}</span><span class="summary-value">${value}</span></li>`)
+    .join("");
+}
+
 function renderSummaryView() {
   summaryOffset = 0;
   renderStreaks();
   renderPeriodSummary();
   renderProgressTable();
+  renderSquatStats();
 }
 
 document.getElementById("summary-period-tabs").addEventListener("click", (e) => {

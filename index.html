@@ -73,6 +73,14 @@
       <fieldset class="group" id="strength-group">
         <legend>筋トレ</legend>
         <p class="hint">使ったマシンにチェックを入れてください(重量はプロフィール値を自動入力、上書き可)</p>
+        <div class="squat-row" id="squat-row">
+          <div class="squat-row-label">スクワット(食後20分以内・20回×朝昼晩)</div>
+          <div class="squat-checks">
+            <label class="checkbox-label"><input type="checkbox" id="squatMorning"> 朝</label>
+            <label class="checkbox-label"><input type="checkbox" id="squatNoon"> 昼</label>
+            <label class="checkbox-label"><input type="checkbox" id="squatEvening"> 晩</label>
+          </div>
+        </div>
         <div id="strength-machines"></div>
         <p id="strength-empty" class="empty" hidden>登録済みのマシンがありません。プロフィール画面で登録してください。</p>
       </fieldset>
@@ -278,6 +286,9 @@
       </table>
     </div>
     <p id="progress-empty" class="empty" hidden>比較できる記録がまだありません</p>
+
+    <h2>スクワット実施状況</h2>
+    <ul class="summary-list" id="squat-stats"></ul>
   </section>
 
   <section id="view-profile" class="view">
@@ -319,6 +330,14 @@
     <h2>筋トレマシン登録</h2>
     <p class="hint">ウエイトはマシンごとに保持されます。変更があった時だけ編集してください。</p>
     <p class="hint">目標重量・目標回数の欄には、体重をもとにした一般的な目安を表示します(機種や個人差により大きく異なるため参考程度にご利用ください)。</p>
+    <div class="squat-profile-card" id="squat-profile-card">
+      <div class="squat-profile-name">スクワット(食後20分以内・20回×朝昼晩)</div>
+      <p class="hint">固定メニューのため編集・削除はできません。</p>
+      <div class="field">
+        <label for="squatRepsPerSet">1回あたりの回数</label>
+        <input type="number" id="squatRepsPerSet" inputmode="numeric" step="1" min="1">
+      </div>
+    </div>
     <ul id="machines-list"></ul>
 
     <h3>マシンを追加</h3>
