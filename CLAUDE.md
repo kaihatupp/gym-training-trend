@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-「Gym Training Trend」は、毎朝のジムトレーニング(有酸素運動・筋トレ・ストレッチ)を記録するための個人利用向けPWA(Progressive Web App)です。フェーズ1〜4まで実装済みで、GitHubリポジトリ`kaihatupp/gym-training-trend`(public)を作成し、GitHub Pagesで公開中(https://kaihatupp.github.io/gym-training-trend/)。ユーザーは実際にスマホのホーム画面に追加してPWAとして使用中。
+「Gym Training Trend」は、毎朝のジムトレーニング(有酸素運動・筋トレ・ストレッチ)を記録するための個人利用向けPWA(Progressive Web App)です。フェーズ1〜5まで実装済み(フェーズ5=スクワット習慣機能、2026-09-25)で、GitHubリポジトリ`kaihatupp/gym-training-trend`(public)を作成し、GitHub Pagesで公開中(https://kaihatupp.github.io/gym-training-trend/)。ユーザーは実際にスマホのホーム画面に追加してPWAとして使用中。2026-10-13には有酸素運動のタイプ切替自動反映・ストレッチ全曜日表示の改修も行った。
 
 姉妹アプリ「VITALtrend」(`taiju-app-dev`フォルダ、体重・体脂肪・血圧を記録するアプリ)と技術構成・運用方針を統一している。将来的にVITALtrendの体重・体脂肪データと連携したいという構想がある(まだ未実装)。
 
@@ -150,7 +150,7 @@ gym-training-trend-app-dev/
 ├── summary.js               # 連続記録日数・週次月次サマリー・成長比較(フェーズ4)、スクワット達成率・連続日数(フェーズ5)
 ├── backup.js                # エクスポート/インポート(記録+プロフィール)
 ├── manifest.json           # PWA設定(アプリ名・アイコン)
-├── sw.js                    # Service Worker(オフラインキャッシュ、ファイル追加のたびにキャッシュ名をバージョンアップ)
+├── sw.js                    # Service Worker(オフラインキャッシュ、ファイルの追加・変更のたびにキャッシュ名をバージョンアップ)
 ├── pwa.js                   # Service Worker登録処理
 ├── generate-icons.ps1       # アイコン生成スクリプト(PowerShell)
 ├── icons/                   # ホーム画面用アイコン各種
