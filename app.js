@@ -205,10 +205,6 @@ function todayString() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function isMonday(dateStr) {
-  return new Date(`${dateStr}T00:00:00`).getDay() === 1;
-}
-
 function getNumberOrNull(el) {
   const value = el.value;
   return value === "" ? null : Number(value);
@@ -669,7 +665,6 @@ const distanceKmInput = document.getElementById("distanceKm");
 const durationMinInput = document.getElementById("durationMin");
 const inclineInput = document.getElementById("incline");
 const isRunWalkComboInput = document.getElementById("isRunWalkCombo");
-const stretchGroup = document.getElementById("stretch-group");
 const stretchDoneInput = document.getElementById("stretchDone");
 const stretchDurationInput = document.getElementById("stretchDuration");
 const memoInput = document.getElementById("memo");
@@ -727,6 +722,17 @@ function getCardioType() {
   const checked = form.querySelector('input[name="cardioType"]:checked');
   return checked ? checked.value : "run";
 }
+
+// 有酸素運動のタイプ切替時は「そのタイプのいつもの内容に戻す」扱いとし、
+// プロフィールの基本設定値で各欄を上書きする(切替後の個別上書きは従来どおり可能)。
+form.addEventListener("change", (e) => {
+  if (e.target.name !== "cardioType") return;
+  const cardioDefaults = getCardioProfile(e.target.value);
+  distanceKmInput.value = cardioDefaults.distanceKm ?? "";
+  durationMinInput.value = cardioDefaults.durationMin ?? "";
+  inclineInput.checked = Boolean(cardioDefaults.incline);
+  isRunWalkComboInput.checked = Boolean(cardioDefaults.isRunWalkCombo);
+});
 
 function getPreviousStrengthEntries(beforeDate) {
   const logs = loadLogs()
@@ -979,7 +985,7 @@ function populateFormForDate(date) {
     inclineInput.checked = Boolean(cardioDefaults.incline);
     isRunWalkComboInput.checked = Boolean(cardioDefaults.isRunWalkCombo);
     stretchDoneInput.checked = templ.showStretch;
-    stretchDurationInput.value = templ.showStretch ? templ.stretchDurationMin : "";
+    stretchDurationInput.value = templ.stretchDurationMin;
     memoInput.value = "";
     renderStrengthMachines(null);
     squatMorningInput.checked = true;
@@ -989,7 +995,6 @@ function populateFormForDate(date) {
   }
 
   renderMealSelects();
-  stretchGroup.hidden = !isMonday(date);
   updateCalorieEstimate();
   lastLoadedDate = date;
   markFormClean();
