@@ -734,6 +734,16 @@ form.addEventListener("change", (e) => {
   isRunWalkComboInput.checked = Boolean(cardioDefaults.isRunWalkCombo);
 });
 
+// 実施済みかどうかはstretch.durationMinの有無から判定しているため、時間欄が
+// 空のままチェックだけ入れて保存すると保存時にdurationMinがnullになり、次に
+// 開いた時に未実施として扱われてしまう。チェックを入れた瞬間に時間欄が空なら
+// いつもの時間を入れておくことでこれを防ぐ。
+stretchDoneInput.addEventListener("change", () => {
+  if (stretchDoneInput.checked && !stretchDurationInput.value) {
+    stretchDurationInput.value = getTemplateForDate(dateInput.value).stretchDurationMin;
+  }
+});
+
 function getPreviousStrengthEntries(beforeDate) {
   const logs = loadLogs()
     .filter((l) => l.date < beforeDate && l.strength && l.strength.entries && l.strength.entries.length > 0)
