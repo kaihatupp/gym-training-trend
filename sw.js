@@ -1,4 +1,4 @@
-const CACHE_NAME = "gym-training-trend-cache-v23";
+const CACHE_NAME = "gym-training-trend-cache-v24";
 const PRECACHE_FILES = [
   "./",
   "index.html",
@@ -32,7 +32,11 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+      Promise.all(
+        keys
+          .filter((key) => key.startsWith("gym-training-trend-cache-") && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      )
     )
   );
   self.clients.claim();

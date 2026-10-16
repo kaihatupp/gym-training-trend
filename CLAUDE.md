@@ -17,6 +17,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - 静的ライブラリの読み込み(例: 将来Chart.jsを`lib/`配下に同梱する場合)は例外として許容するが、CDN経由での読み込みは避け、VITALtrend同様ファイル同梱でオフライン動作を保つ。
   - サーバー送信が必要になる機能を頼まれた場合は、実装前にこの制約との矛盾を指摘すること。
 - PWA対応: `manifest.json` + Service Worker(`sw.js`)によるオフラインキャッシュ(VITALtrendの構成を踏襲)
+  - 同一オリジン(https://kaihatupp.github.io)で他の自分用アプリ(OneBoard・VITALtrend)と同居しているため、Cache Storageは共有される。
+  - 古いキャッシュの削除(`sw.js`のactivate)は、**自アプリの接頭辞(`gym-training-trend-cache-`)で始まるものだけ**を対象にする。「現在のキャッシュ名以外を全削除」の書き方は禁止(他アプリのオフラインキャッシュまで消してしまうため、2026-10-16修正)。
+  - キャッシュ名は `gym-training-trend-cache-` + バージョン番号(例: `v24`)とし、sw.jsやキャッシュ対象ファイルの変更時は番号を上げる。
 - 公開: Publicリポジトリ + GitHub Pagesでホスティング(データはlocalStorageのみでサーバー送信がないため、コード公開に実害はない)
 
 ## 開発の進め方(小さく作って大きく育てる)
